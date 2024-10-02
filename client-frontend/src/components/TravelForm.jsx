@@ -1,101 +1,71 @@
 import React, { useState } from 'react';
-import Select from 'react-select';
-import '../assets/css/TravelForm.css';
-import  { components } from 'react-select';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import '../assets/css/TravelForm.css'; // Import the CSS file
 
-const places = [
-    { label: 'New York, NY', value: 'new_york' },
-    { label: 'Los Angeles, CA', value: 'los_angeles' },
-    { label: 'Chicago, IL', value: 'chicago' },
-    { label: 'San Francisco, CA', value: 'san_francisco' },
-    { label: 'Miami, FL', value: 'miami' },
-    { label: 'Miami, FL', value: 'miami' },
-    // Add more places as needed
-  ];
-  
-  // Custom Dropdown Indicator component
-  const DropdownIndicator = () => {
-    return null; // Render nothing
-  };
-  
-  // Custom Single Value component
-  const CustomSingleValue = ({ data }) => {
-    return <span>{data.label}</span>; // Render only the label without a separator
-  };
-  
-  const TravelForm = () => {
-    const [fromLocation, setFromLocation] = useState(null);
-    const [toLocation, setToLocation] = useState(null);
+const TravelForm = () => {
+    const [from, setFrom] = useState('');
+    const [to, setTo] = useState('');
     const [budget, setBudget] = useState('');
-    const [inputValueFrom, setInputValueFrom] = useState('');
-    const [inputValueTo, setInputValueTo] = useState('');
-  
-    // Filter options based on input
-    const filteredFromPlaces = places.filter(place =>
-      place.label.toLowerCase().includes(inputValueFrom.toLowerCase())
-    );
-  
-    const filteredToPlaces = places.filter(place =>
-      place.label.toLowerCase().includes(inputValueTo.toLowerCase())
-    );
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
   
     const handleSubmit = (e) => {
       e.preventDefault();
-      console.log('Travel From:', fromLocation?.label);
-      console.log('Travel To:', toLocation?.label);
+      // Handle form submission logic here
+      console.log('From:', from);
+      console.log('To:', to);
       console.log('Budget:', budget);
+      console.log('Start Date:', startDate);
+      console.log('End Date:', endDate);
     };
   
     return (
       <form onSubmit={handleSubmit} className="travel-form">
         <div className="form-group">
-          <label>From</label>
-          <Select
-            options={filteredFromPlaces}
-            value={fromLocation}
-            onChange={(selectedOption) => setFromLocation(selectedOption)}
-            onInputChange={(input) => setInputValueFrom(input)} // Update input value
-            placeholder="Enter starting location"
-            className="custom-select"
-            classNamePrefix="react-select"
-            components={{
-              DropdownIndicator,
-              SingleValue: CustomSingleValue
-            }}
-            menuIsOpen={inputValueFrom.length > 1} // Show dropdown based on input length
+          <label>Destination From:</label>
+          <input
+            type="text"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            placeholder="Enter starting point"
           />
         </div>
-  
         <div className="form-group">
-          <label>To</label>
-          <Select
-            options={filteredToPlaces}
-            value={toLocation}
-            onChange={(selectedOption) => setToLocation(selectedOption)}
-            onInputChange={(input) => setInputValueTo(input)} // Update input value
+          <label>Destination To:</label>
+          <input
+            type="text"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
             placeholder="Enter destination"
-            className="custom-select"
-            classNamePrefix="react-select"
-            components={{
-              DropdownIndicator,
-              SingleValue: CustomSingleValue
-            }}
-            menuIsOpen={inputValueTo.length > 1} // Show dropdown based on input length
           />
         </div>
-  
         <div className="form-group">
-          <label>Budget (in USD)</label>
+          <label>Budget:</label>
           <input
             type="number"
-            className='budget-input'
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
             placeholder="Enter your budget"
           />
         </div>
-  
-        <button type="submit" className="plan-button">Let’s Plan It!</button>
+        <div className="form-group">
+          <label>Start Date:</label>
+          <DatePicker
+            selected={startDate}
+            onChange={(date) => setStartDate(date)}
+            placeholderText="Select start date"
+          />
+        </div>
+        <div className="form-group">
+          <label>End Date:</label>
+          <DatePicker
+            selected={endDate}
+            onChange={(date) => setEndDate(date)}
+            placeholderText="Select end date"
+          />
+        </div>
+        <button type="submit" className="submit-button">Let's Plan It</button>
       </form>
     );
   };

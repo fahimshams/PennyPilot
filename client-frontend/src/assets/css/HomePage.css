@@ -1,31 +1,60 @@
 .home-page {
     text-align: center;
-
     background-size: cover;
     background-position: center;
     color: black;
-    height: 100vh;
+    height: 100vh; /* This can remain fixed for full-screen view */
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .header h1 {
-    font-size: 3rem;
+    flex-direction: column; /* Stack elements vertically */
+    justify-content: center; /* Center vertically */
+    align-items: center; /* Center horizontally */
+    padding: 20px; /* Add padding for smaller screens */
+}
+
+.header h1 {
+    font-size: 3rem; /* Large font size for header */
     font-weight: bold;
     margin-bottom: 10px;
-  }
-  
-  .header p {
-    font-size: 1.5rem;
+}
+
+.header p {
+    font-size: 1.5rem; /* Adjust font size for the paragraph */
     margin-bottom: 30px;
-  }
-  
-  .form-container {
+}
+
+.form-container {
     background-color: rgba(255, 255, 255, 0.9);
-    padding: 20px;
+    padding: 20px; /* Add some padding for content */
     border-radius: 12px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  }
-  
+    width: 100%; /* Make the form container full width */
+    max-width: 600px; /* Set a max width for larger screens */
+}
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 2.5rem; /* Reduce header font size on smaller screens */
+    }
+
+    .header p {
+        font-size: 1.2rem; /* Reduce paragraph font size on smaller screens */
+    }
+
+    .form-container {
+        padding: 15px; /* Adjust padding for smaller screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 2rem; /* Further reduce header font size */
+    }
+
+    .header p {
+        font-size: 1rem; /* Further reduce paragraph font size */
+    }
+
+    .form-container {
+        padding: 10px; /* Further reduce padding */
+    }
+}

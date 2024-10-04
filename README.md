@@ -2,5 +2,5 @@
 
 Packages installed
 - react-datepicker
-- npm install dotend
+- npm install dotenv
 - npm install amadeus --save

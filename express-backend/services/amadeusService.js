@@ -7,21 +7,18 @@ var amadeus = new Amadeus({
     clientSecret: process.env.AMADEUS_CLIENT_SECRET
 });
 
-
-
-exports.searchFlights = async (originLocationCode, destinationLocationCode, departureDate, adults) => {
+exports.searchFlights = async (originLocationCode, destinationLocationCode, departureDate, returnDate, adults) => {
     try {
         const response = await amadeus.shopping.flightOffersSearch.get({
             originLocationCode: originLocationCode,
             destinationLocationCode: destinationLocationCode,
             departureDate: departureDate,
+            returnDate: returnDate,
             adults: adults
         })
 
-        console.log(process.env.AMADEUS_CLIENT_ID)
-        console.log(process.env.AMADEUS_CLIENT_SECRET)
 
-        return response.data[0];
+        return response.data;
     }
     catch(error){
         console.error(error);

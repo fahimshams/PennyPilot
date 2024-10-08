@@ -7,7 +7,8 @@ var amadeus = new Amadeus({
     clientSecret: process.env.AMADEUS_CLIENT_SECRET
 });
 
-exports.searchFlights = async (originLocationCode, destinationLocationCode, departureDate, returnDate, adults) => {
+//Service for flights from amadeus
+const searchFlights = async (originLocationCode, destinationLocationCode, departureDate, returnDate, adults) => {
     try {
         const response = await amadeus.shopping.flightOffersSearch.get({
             originLocationCode: originLocationCode,
@@ -26,3 +27,24 @@ exports.searchFlights = async (originLocationCode, destinationLocationCode, depa
     }
 };
 
+//Service for car rentals from amadeus
+const searchCarRentals = async (pickUpLocationCode, dropOffLocationCode, pickUpDateTime, dropOffDateTime) => {
+    try {
+        const response = await amadeus.shopping.carRentalOffers.get({
+            pickUpLocationCode: pickUpLocationCode,
+            dropOffLocationCode: dropOffLocationCode,
+            pickUpDateTime: pickUpDateTime,
+            dropOffDateTime: dropOffDateTime
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw new Error('Error fetching car rental data from Amadeus');
+    }
+};
+
+module.exports ={
+    searchFlights,
+    searchCarRentals
+}

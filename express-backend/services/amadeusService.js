@@ -30,7 +30,7 @@ const searchFlights = async (originLocationCode, destinationLocationCode, depart
 //Service for car rentals from amadeus
 const searchCarRentals = async (pickUpLocationCode, dropOffLocationCode, pickUpDateTime, dropOffDateTime) => {
     try {
-        const response = await amadeus.shopping.carRentalOffers.get({
+        const response = await amadeus.shopping.carRentals.get({
             pickUpLocationCode: pickUpLocationCode,
             dropOffLocationCode: dropOffLocationCode,
             pickUpDateTime: pickUpDateTime,

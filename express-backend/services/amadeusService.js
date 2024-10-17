@@ -45,25 +45,26 @@ const searchCarRentals = async (pickUpLocationCode, dropOffLocationCode, pickUpD
 };
 
 
-const searchHotels = async (cityCode, checkInDate, checkOutDate, adults) => {
+const searchHotels = async (cityCode) => {
     try {
+        console.log(process.env.AMADEUS_CLIENT_ID)
+        console.log(process.env.AMADEUS_CLIENT_SECRET)
+        console.log(cityCode);
         const response = await amadeus.shopping.hotelOffers.get({
             cityCode: cityCode,
-            checkInDate: checkInDate,
-            checkOutDate: checkOutDate,
-            adults: adults
+ 
 
         })
 
-        const hotels = response.data.map(offer => {
-            const hotelName = offer.hotel.name;
-            const checkIn = offer.offers[0].checkInDate;
-            const checkOut = offer.offers[0].checkOutDate;
-            const price = offer.offers[0].price.total;
-            return { hotelName, checkIn, checkOut, price };
-        });
+        // const hotels = response.data.map(offer => {
+        //     const hotelName = offer.hotel.name;
+        //     const checkIn = offer.offers[0].checkInDate;
+        //     const checkOut = offer.offers[0].checkOutDate;
+        //     const price = offer.offers[0].price.total;
+        //     return { hotelName, checkIn, checkOut, price };
+        // });
 
-        return hotels;
+        return response.data;
     }
 
     catch (error) {

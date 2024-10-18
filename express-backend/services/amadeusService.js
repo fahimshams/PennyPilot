@@ -45,14 +45,11 @@ const searchCarRentals = async (pickUpLocationCode, dropOffLocationCode, pickUpD
 };
 
 
-const searchHotels = async (cityCode) => {
+const searchHotels = async (cityCode, hotelIds) => {
     try {
-        console.log(process.env.AMADEUS_CLIENT_ID)
-        console.log(process.env.AMADEUS_CLIENT_SECRET)
-        console.log(cityCode);
-        const response = await amadeus.shopping.hotelOffers.get({
-            cityCode: cityCode,
- 
+        const response = await amadeus.referenceData.locations.hotels.byCity.get({
+            cityCode: "NYC",
+           
 
         })
 

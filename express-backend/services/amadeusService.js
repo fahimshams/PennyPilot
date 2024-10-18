@@ -46,28 +46,26 @@ const searchCarRentals = async (pickUpLocationCode, dropOffLocationCode, pickUpD
 
 
 //Service to get hotel IDs from amadeus
-const searchHotels = async (cityCode, hotelIds) => {
+const searchHotels = async (cityCode) => {
     try {
         const response = await amadeus.referenceData.locations.hotels.byCity.get({
-            cityCode: "NYC",
+            cityCode: cityCode,
            
 
         })
 
-        // const hotels = response.data.map(offer => {
-        //     const hotelName = offer.hotel.name;
-        //     const checkIn = offer.offers[0].checkInDate;
-        //     const checkOut = offer.offers[0].checkOutDate;
-        //     const price = offer.offers[0].price.total;
-        //     return { hotelName, checkIn, checkOut, price };
-        // });
+        const hotelIds = response.data.map(hotel => {
+            return hotel.hotelId;
+        })
 
-        return response.data;
+        return hotelIds;
+
+        // return response.data;
     }
 
     catch (error) {
         console.error(error);
-        throw new Error('Error fetching hotel data from Amadeus');
+        throw new Error('Error fetching hotel ids data from Amadeus');
     }
 }
 

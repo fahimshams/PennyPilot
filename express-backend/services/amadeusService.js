@@ -46,7 +46,7 @@ const searchCarRentals = async (pickUpLocationCode, dropOffLocationCode, pickUpD
 
 
 //Service to get hotel IDs from amadeus
-const searchHotels = async (cityCode) => {
+const searchHotelsIds = async (cityCode) => {
     try {
         const response = await amadeus.referenceData.locations.hotels.byCity.get({
             cityCode: cityCode,
@@ -67,6 +67,10 @@ const searchHotels = async (cityCode) => {
         console.error(error);
         throw new Error('Error fetching hotel ids data from Amadeus');
     }
+}
+
+const searchHotels = async (ids) => {
+    return [];
 }
 
 module.exports ={

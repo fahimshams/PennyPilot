@@ -1,18 +1,13 @@
-// import { Stack } from 'expo-router';
-// import React from 'react';
-// import { Colors } from '@/constants/Colors';
-// import { useColorScheme } from '@/hooks/useColorScheme';
 
-// export default function TabLayout() {
-//   const colorScheme = useColorScheme();
+// app/_layout.tsx
+import { Stack } from 'expo-router';
 
-//   return (
-//     <Stack
-//       screenOptions={{
-//         headerShown: false, // You can keep or remove this as needed
-//       }}
-//     >
-//       <Stack.Screen name="index" />
-//     </Stack>
-//   );
-// }
+export default function Layout() {
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="+not-found" />
+      
+    </Stack>
+  );
+}

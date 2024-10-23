@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
-import { HelloWave } from '@/components/HelloWave';
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { TravelForm } from '@/components/TravelForm'; // Import the TravelForm component
@@ -11,14 +11,14 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="title">Welcome to PennyPilot!</ThemedText>
-          <HelloWave />
+         
         </ThemedView>
       </View>
 
       {/* Add the TravelForm below the introductory content */}
       <ThemedView style={styles.formContainer}>
        
-        <TravelForm />
+        <TravelForm/>
       </ThemedView>
     </ScrollView>
   );

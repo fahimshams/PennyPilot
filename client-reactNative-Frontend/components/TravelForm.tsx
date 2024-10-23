@@ -1,6 +1,12 @@
 import React, { useState, ChangeEvent } from 'react';
 import { View, TextInput, Text, Button, StyleSheet, Platform } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types/navigation';
+import { router } from 'expo-router';
+
+type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
 
 export const TravelForm = () => {
   const [from, setFrom] = useState('');
@@ -12,6 +18,11 @@ export const TravelForm = () => {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [startDateInput, setStartDateInput] = useState('');
   const [endDateInput, setEndDateInput] = useState('');
+  const [budget, setBudget] = useState('');
+
+  
+
+  const navigation = useNavigation<NavigationProps>();
 
   const isWeb = Platform.OS === 'web';
 
@@ -77,7 +88,7 @@ export const TravelForm = () => {
 
   const handleSubmit = () => {
     // Validate inputs before submitting
-    if (!from || !to || !startDateInput || !endDateInput || !passengers) {
+    if (!from || !to || !startDateInput || !endDateInput || !passengers || !budget) {
       alert('Please fill in all fields');
       return;
     }
@@ -87,12 +98,17 @@ export const TravelForm = () => {
       return;
     }
 
+    router.push("/flights");
+
+  
+
     console.log({
       from,
       to,
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       passengers: parseInt(passengers, 10),
+      budget
     });
   };
 
@@ -151,7 +167,7 @@ export const TravelForm = () => {
       <Text style={styles.label}>From</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter starting location"
+        placeholder="From where are you starting your trip?"
         value={from}
         onChangeText={setFrom}
       />
@@ -159,7 +175,7 @@ export const TravelForm = () => {
       <Text style={styles.label}>To</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter destination"
+        placeholder="Where do you want to go?"
         value={to}
         onChangeText={setTo}
       />
@@ -170,16 +186,27 @@ export const TravelForm = () => {
       <Text style={styles.label}>End Date</Text>
       {renderDateInput('end')}
 
+      <Text style={styles.label}>Budget</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="What is your budget?"
+        keyboardType="numeric"
+        value={budget}
+        onChangeText={setBudget}
+      />
+
       <Text style={styles.label}>Number of Passengers</Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter number of passengers"
+        placeholder="How many people are travelling?"
         keyboardType="numeric"
         value={passengers}
         onChangeText={setPassengers}
       />
 
-      <Button title="Submit" onPress={handleSubmit} />
+      
+
+      <Button title="Lets Plan!" onPress={handleSubmit} />
     </View>
   );
 };

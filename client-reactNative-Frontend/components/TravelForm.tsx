@@ -1,7 +1,6 @@
 import React, { useState, ChangeEvent } from 'react';
 import { View, TextInput, Text, Button, StyleSheet, Platform } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
 import { router } from 'expo-router';
@@ -20,9 +19,6 @@ export const TravelForm = () => {
   const [endDateInput, setEndDateInput] = useState('');
   const [budget, setBudget] = useState('');
 
-  
-
-  const navigation = useNavigation<NavigationProps>();
 
   const isWeb = Platform.OS === 'web';
 
@@ -86,7 +82,7 @@ export const TravelForm = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate inputs before submitting
     if (!from || !to || !startDateInput || !endDateInput || !passengers || !budget) {
       alert('Please fill in all fields');
@@ -98,18 +94,38 @@ export const TravelForm = () => {
       return;
     }
 
-    router.push("/flights");
+    try{
 
-  
+      const response = await fetch(
+         `http://localhost:5000/api/searchFlights?originLocationCode=${from}&destinationLocationCode=${to}&departureDate=${startDateInput}&returnDate=${endDateInput}&adults=${passengers}&travelBudget=${budget}`
+      );
 
-    console.log({
-      from,
-      to,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
-      passengers: parseInt(passengers, 10),
-      budget
-    });
+      if (!response.ok) {
+        throw new Error('Failed to fetch flights');
+      }
+
+      const flightData = await response.json();
+      console.log(typeof(flightData));
+
+      router.setParams({flights: flightData})
+
+      router.push({
+        pathname: "/flights",
+      
+      });
+
+      
+
+    }
+    catch(error){
+      console.error(error);
+      alert('There was an error fetching the flight details.');
+    
+    }
+    
+
+    
+
   };
 
   const showDatePicker = (type: 'start' | 'end') => {

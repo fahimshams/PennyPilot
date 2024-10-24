@@ -11,17 +11,23 @@ const extractFlightDetails = (responseData, travelBudget) => {
       let passengers = flight.travelerPricings.length; // number of passengers
       let price = flight.price.grandTotal; // price of the flight
 
-      // Map the departure and return segments
+      // Map the departure and return segments with stop details
       const departureSegments = departure.segments.map(segment => ({
         from: segment.departure.iataCode,
         to: segment.arrival.iataCode,
-        departureTime: segment.departure.at
+        departureTime: segment.departure.at,
+        arrivalTime: segment.arrival.at,
+        stops: segment.stop ? segment.stop.iataCode : 'Non-stop',
+        stopDuration: segment.stop ? segment.stop.duration : 'No stop'
       }));
 
       const returnSegments = returnFlight.segments.map(segment => ({
         from: segment.departure.iataCode,
         to: segment.arrival.iataCode,
-        returnTime: segment.departure.at
+        departureTime: segment.departure.at,
+        arrivalTime: segment.arrival.at,
+        stops: segment.stop ? segment.stop.iataCode : 'Non-stop',
+        stopDuration: segment.stop ? segment.stop.duration : 'No stop'
       }));
 
       // Return the structured flight details
@@ -32,7 +38,8 @@ const extractFlightDetails = (responseData, travelBudget) => {
         return: returnSegments
       };
     });
-}
+};
+
 
 // Controller method for flight search
 exports.searchFlights = async (req, res) => {

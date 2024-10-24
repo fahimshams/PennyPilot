@@ -1,117 +1,101 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useLocalSearchParams } from 'expo-router';
 
-// Define TypeScript interfaces
-interface FlightParams {
+// Define TypeScript interfaces for the flight data structure
+interface FlightSegment {
   from: string;
   to: string;
-  startDate: string;
-  endDate: string;
-  passengers: number;
-  budget: number;
-}
-
-interface Flight {
-  id: string;
-  airline: string;
   departureTime: string;
   arrivalTime: string;
-  price: number;
-  duration: string;
-  stops: number;
+  stops: string;
+  stopDuration: string;
 }
 
-// Dummy data generator function
-const generateDummyFlights = (params: FlightParams): Flight[] => {
-  const flights: Flight[] = [];
-  const airlines = ['SkyWings', 'AirSpeed', 'GlobalJet', 'StarLine'];
-  
-  // Only generate flights if the price is within budget
-  for (let i = 0; i < 8; i++) {
-    const price = Math.floor(Math.random() * (1000 * 0.8)) + (1000 * 0.2);
-    const hours = Math.floor(Math.random() * 8) + 1;
-    const minutes = Math.floor(Math.random() * 60);
-    
-    flights.push({
-      id: `flight-${i}`,
-      airline: airlines[Math.floor(Math.random() * airlines.length)],
-      departureTime: '08:00 AM',
-      arrivalTime: `${(8 + hours) % 24}:${minutes.toString().padStart(2, '0')} ${(8 + hours) >= 12 ? 'PM' : 'AM'}`,
-      price,
-      duration: `${hours}h ${minutes}m`,
-      stops: Math.floor(Math.random() * 2),
-    });
-  }
-  
-  return flights.sort((a, b) => a.price - b.price);
-};
+interface FlightDetails {
+  price: string;
+  passengers: number;
+  departure: FlightSegment[];
+  return: FlightSegment[];
+}
 
 export default function FlightListings() {
-  const route = useRoute();
-  const navigation = useNavigation();
-  const params = route.params as FlightParams;
+  const searchParams = useLocalSearchParams();
+
+
+  // Ensure flights is a string before parsing
   
-  // Generate dummy flights based on search parameters
-  const flights = generateDummyFlights(params);
-  
-  const renderFlightCard = ({ item }: { item: Flight }) => (
-    <Pressable
-      style={styles.flightCard}
-      onPress={() => {
-        // Handle flight selection
-        console.log('Selected flight:', item);
-      }}
-    >
-      <View style={styles.airlineRow}>
-        <Text style={styles.airlineName}>{item.airline}</Text>
-        <Text style={styles.price}>${item.price}</Text>
+  // Access the flights parameter from searchParams
+  const flightsParam = searchParams.flights;
+
+
+  // Ensure flights is a string before parsing
+  let flights: FlightDetails[] = [];
+
+  // Check if flights is a string or an array of strings
+
+  console.log((flightsParam));
+
+  // if (flightsParam) {
+  //   try {
+  //     flights = JSON.parse(flightsParam) as FlightDetails[]; // Deserialize the JSON string back into an object
+  //   } catch (error) {
+  //     console.error("Failed to parse flight data:", error);
+  //   }
+  // }
+
+  const renderFlightCard = ({ item }: { item: FlightDetails }) => (
+    <Pressable style={styles.flightCard}>
+      <View style={styles.priceRow}>
+        <Text style={styles.priceText}>${item.price}</Text>
+        <Text>{item.passengers} passenger(s)</Text>
       </View>
-      
-      <View style={styles.flightDetails}>
-        <View style={styles.timeColumn}>
-          <Text style={styles.timeText}>{item.departureTime}</Text>
-          <Text style={styles.cityText}>{params.from}</Text>
-        </View>
-        
-        <View style={styles.durationColumn}>
-          <Text style={styles.durationText}>{item.duration}</Text>
-          <View style={styles.flightPath}>
-            <View style={styles.line} />
-            {item.stops > 0 && <View style={styles.stopDot} />}
-          </View>
-          <Text style={styles.stopsText}>
-            {item.stops === 0 ? 'Direct' : `${item.stops} stop`}
+
+      {/* Departure flight details */}
+      <Text style={styles.sectionTitle}>Departure:</Text>
+      {item.departure.map((segment, index) => (
+        <View key={index} style={styles.segmentDetails}>
+          <Text style={styles.segmentText}>
+            {segment.from} → {segment.to}
           </Text>
+          <Text>Departure: {segment.departureTime}</Text>
+          <Text>Arrival: {segment.arrivalTime}</Text>
+          <Text>Stops: {segment.stops}</Text>
+          <Text>Stop Duration: {segment.stopDuration}</Text>
         </View>
-        
-        <View style={styles.timeColumn}>
-          <Text style={styles.timeText}>{item.arrivalTime}</Text>
-          <Text style={styles.cityText}>{params.to}</Text>
+      ))}
+
+      {/* Return flight details */}
+      <Text style={styles.sectionTitle}>Return:</Text>
+      {item.return.map((segment, index) => (
+        <View key={index} style={styles.segmentDetails}>
+          <Text style={styles.segmentText}>
+            {segment.from} → {segment.to}
+          </Text>
+          <Text>Departure: {segment.departureTime}</Text>
+          <Text>Arrival: {segment.arrivalTime}</Text>
+          <Text>Stops: {segment.stops}</Text>
+          <Text>Stop Duration: {segment.stopDuration}</Text>
         </View>
-      </View>
+      ))}
     </Pressable>
   );
 
-  if (flights.length === 0) {
+  if (!flights || flights.length === 0) {
     return (
       <View style={styles.noFlightsContainer}>
-        <Text style={styles.noFlightsText}>
-          No flights found within your budget. Please try adjusting your search criteria.
-        </Text>
+        <Text style={styles.noFlightsText}>No flights found.</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>
-        Available Flights ({flights.length})
-      </Text>
+      <Text style={styles.header}>Available Flights ({flights.length})</Text>
       <FlatList
         data={flights}
         renderItem={renderFlightCard}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.listContainer}
       />
     </View>
@@ -145,81 +129,36 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  airlineRow: {
+  priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
-  airlineName: {
+  priceText: {
     fontSize: 18,
-    fontWeight: '600',
-  },
-  price: {
-    fontSize: 20,
     fontWeight: 'bold',
     color: '#2E7D32',
   },
-  flightDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  timeColumn: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  durationColumn: {
-    alignItems: 'center',
-    flex: 2,
-  },
-  timeText: {
+  sectionTitle: {
     fontSize: 16,
+    fontWeight: '600',
+    marginTop: 10,
+  },
+  segmentDetails: {
+    marginTop: 5,
+    paddingLeft: 10,
+  },
+  segmentText: {
+    fontSize: 14,
     fontWeight: '500',
-  },
-  cityText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  durationText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  flightPath: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
-    width: '100%',
-    position: 'relative',
-  },
-  line: {
-    height: 2,
-    backgroundColor: '#ddd',
-    flex: 1,
-  },
-  stopDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#666',
-    position: 'absolute',
-    left: '50%',
-    marginLeft: -4,
-  },
-  stopsText: {
-    fontSize: 12,
-    color: '#666',
   },
   noFlightsContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   noFlightsText: {
     fontSize: 16,
-    textAlign: 'center',
     color: '#666',
   },
 });

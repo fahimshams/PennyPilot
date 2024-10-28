@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, Pressable, Button } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 
 // Define TypeScript interfaces for the flight data structure
@@ -20,32 +20,45 @@ interface FlightDetails {
 }
 
 export default function FlightListings() {
-  const searchParams = useLocalSearchParams();
-
-
-  // Ensure flights is a string before parsing
+  const [flights, setFlights] = useState<FlightDetails[]>([]);
+  const [expandedFlightIndex, setExpandedFlightIndex] = useState<number | null>(null);
   
-  // Access the flights parameter from searchParams
-  const flightsParam = searchParams.flights;
+  const searchParams = useLocalSearchParams();
+  const { from, to, startDate, endDate, passengers, budget } = searchParams;
 
+  useEffect(() => {
+    const fetchFlights = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/searchFlights?originLocationCode=${from}&destinationLocationCode=${to}&departureDate=${startDate}&returnDate=${endDate}&adults=${passengers}&travelBudget=${budget}`
+        );
 
-  // Ensure flights is a string before parsing
-  let flights: FlightDetails[] = [];
+        if (!response.ok) {
+          throw new Error('Failed to fetch flights');
+        }
 
-  // Check if flights is a string or an array of strings
+        const data: FlightDetails[] = await response.json();
+        setFlights(data);
+      } catch (error) {
+        console.error(error);
+        alert('There was an error fetching the flight details.');
+      }
+    };
 
-  console.log((flightsParam));
+    fetchFlights();
+  }, [from, to, startDate, endDate, passengers, budget]);
 
-  // if (flightsParam) {
-  //   try {
-  //     flights = JSON.parse(flightsParam) as FlightDetails[]; // Deserialize the JSON string back into an object
-  //   } catch (error) {
-  //     console.error("Failed to parse flight data:", error);
-  //   }
-  // }
+  const handleExpandToggle = (index: number) => {
+    setExpandedFlightIndex(expandedFlightIndex === index ? null : index);
+  };
 
-  const renderFlightCard = ({ item }: { item: FlightDetails }) => (
-    <Pressable style={styles.flightCard}>
+  const handleSelectFlight = (flight: FlightDetails) => {
+    console.log(flight);
+    alert(`Selected flight: ${JSON.stringify(flight, null, 2)}`);
+  };
+
+  const renderFlightCard = ({ item, index }: { item: FlightDetails; index: number }) => (
+    <Pressable style={styles.flightCard} onPress={() => handleExpandToggle(index)}>
       <View style={styles.priceRow}>
         <Text style={styles.priceText}>${item.price}</Text>
         <Text>{item.passengers} passenger(s)</Text>
@@ -53,8 +66,8 @@ export default function FlightListings() {
 
       {/* Departure flight details */}
       <Text style={styles.sectionTitle}>Departure:</Text>
-      {item.departure.map((segment, index) => (
-        <View key={index} style={styles.segmentDetails}>
+      {item.departure.map((segment, idx) => (
+        <View key={idx} style={styles.segmentDetails}>
           <Text style={styles.segmentText}>
             {segment.from} → {segment.to}
           </Text>
@@ -65,23 +78,28 @@ export default function FlightListings() {
         </View>
       ))}
 
-      {/* Return flight details */}
-      <Text style={styles.sectionTitle}>Return:</Text>
-      {item.return.map((segment, index) => (
-        <View key={index} style={styles.segmentDetails}>
-          <Text style={styles.segmentText}>
-            {segment.from} → {segment.to}
-          </Text>
-          <Text>Departure: {segment.departureTime}</Text>
-          <Text>Arrival: {segment.arrivalTime}</Text>
-          <Text>Stops: {segment.stops}</Text>
-          <Text>Stop Duration: {segment.stopDuration}</Text>
-        </View>
-      ))}
+      {/* Show return flight details if expanded */}
+      {expandedFlightIndex === index && (
+        <>
+          <Text style={styles.sectionTitle}>Return:</Text>
+          {item.return.map((segment, idx) => (
+            <View key={idx} style={styles.segmentDetails}>
+              <Text style={styles.segmentText}>
+                {segment.from} → {segment.to}
+              </Text>
+              <Text>Departure: {segment.departureTime}</Text>
+              <Text>Arrival: {segment.arrivalTime}</Text>
+              <Text>Stops: {segment.stops}</Text>
+              <Text>Stop Duration: {segment.stopDuration}</Text>
+            </View>
+          ))}
+          <Button title="Select Flight" onPress={() => handleSelectFlight(item)} />
+        </>
+      )}
     </Pressable>
   );
 
-  if (!flights || flights.length === 0) {
+  if (!flights.length) {
     return (
       <View style={styles.noFlightsContainer}>
         <Text style={styles.noFlightsText}>No flights found.</Text>

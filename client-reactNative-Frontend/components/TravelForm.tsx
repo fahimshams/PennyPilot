@@ -94,34 +94,30 @@ export const TravelForm = () => {
       return;
     }
 
-    try{
+    // try{
 
-      const response = await fetch(
-         `http://localhost:5000/api/searchFlights?originLocationCode=${from}&destinationLocationCode=${to}&departureDate=${startDateInput}&returnDate=${endDateInput}&adults=${passengers}&travelBudget=${budget}`
-      );
+    //   const response = await fetch(
+    //      `http://localhost:5000/api/searchFlights?originLocationCode=${from}&destinationLocationCode=${to}&departureDate=${startDateInput}&returnDate=${endDateInput}&adults=${passengers}&travelBudget=${budget}`
+    //   );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch flights');
-      }
-
-      const flightData = await response.json();
-      console.log(typeof(flightData));
-
-      router.setParams({flights: flightData})
+    //   if (!response.ok) {
+    //     throw new Error('Failed to fetch flights');
+    //   }
 
       router.push({
         pathname: "/flights",
+        params: {from: from, to: to, startDate: startDateInput, endDate: endDateInput, passengers: passengers, budget: budget }
       
-      });
+       });
 
       
 
-    }
-    catch(error){
-      console.error(error);
-      alert('There was an error fetching the flight details.');
+    // }
+    // catch(error){
+    //   console.error(error);
+    //   alert('There was an error fetching the flight details.');
     
-    }
+    // }
     
 
     

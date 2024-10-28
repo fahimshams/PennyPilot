@@ -8,14 +8,15 @@ var amadeus = new Amadeus({
 });
 
 //Service for flights from amadeus
-const searchFlights = async (originLocationCode, destinationLocationCode, departureDate, returnDate, adults) => {
+const searchFlights = async (originLocationCode, destinationLocationCode, departureDate, returnDate, adults, currencyCode) => {
     try {
         const response = await amadeus.shopping.flightOffersSearch.get({
             originLocationCode: originLocationCode,
             destinationLocationCode: destinationLocationCode,
             departureDate: departureDate,
             returnDate: returnDate,
-            adults: adults
+            adults: adults,
+            currencyCode: currencyCode
         })
 
 

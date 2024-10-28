@@ -5,8 +5,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
 import { router } from 'expo-router';
 
-type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
-
 export const TravelForm = () => {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');

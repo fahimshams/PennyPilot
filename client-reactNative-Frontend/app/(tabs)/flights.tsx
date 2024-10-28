@@ -73,8 +73,6 @@ export default function FlightListings() {
           </Text>
           <Text>Departure: {segment.departureTime}</Text>
           <Text>Arrival: {segment.arrivalTime}</Text>
-          <Text>Stops: {segment.stops}</Text>
-          <Text>Stop Duration: {segment.stopDuration}</Text>
         </View>
       ))}
 
@@ -89,8 +87,6 @@ export default function FlightListings() {
               </Text>
               <Text>Departure: {segment.departureTime}</Text>
               <Text>Arrival: {segment.arrivalTime}</Text>
-              <Text>Stops: {segment.stops}</Text>
-              <Text>Stop Duration: {segment.stopDuration}</Text>
             </View>
           ))}
           <Button title="Select Flight" onPress={() => handleSelectFlight(item)} />

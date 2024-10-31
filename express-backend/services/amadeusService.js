@@ -56,12 +56,11 @@ const searchHotelsIds = async (cityCode) => {
         })
 
         const hotelIds = response.data.map(hotel => {
-            return hotel.hotelId;
+           return (hotel.hotelId)    
         })
 
-        return hotelIds;
 
-        // return response.data;
+        return hotelIds;
     }
 
     catch (error) {
@@ -70,12 +69,33 @@ const searchHotelsIds = async (cityCode) => {
     }
 }
 
-const searchHotels = async (ids) => {
-    return [];
+const searchHotels = async (hotelIds, adults, checkInDate, checkOutDate) => {
+    try {
+        const response = await amadeus.shopping.hotelOffersSearch.get({
+            hotelIds: hotelIds,
+            adults: adults,
+            checkInDate: checkInDate,
+            checkOutDate: checkOutDate
+
+           
+
+        })
+
+
+        return response.data;
+
+        // return response.data;
+    }
+
+    catch (error) {
+        console.error(error);
+        throw new Error('Error fetching hotel data from Amadeus');
+    }
 }
 
 module.exports ={
     searchFlights,
     searchCarRentals,
+    searchHotelsIds,
     searchHotels
 }

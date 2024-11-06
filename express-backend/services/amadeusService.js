@@ -77,10 +77,7 @@ const searchHotels = async (hotelIds, adults, checkInDate, checkOutDate) => {
             checkInDate: checkInDate,
             checkOutDate: checkOutDate
 
-           
-
         })
-
 
         return response.data;
 

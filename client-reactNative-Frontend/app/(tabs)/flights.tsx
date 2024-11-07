@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, Button } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 // Define TypeScript interfaces for the flight data structure
 interface FlightSegment {
@@ -22,6 +22,11 @@ interface FlightDetails {
 export default function FlightListings() {
   const [flights, setFlights] = useState<FlightDetails[]>([]);
   const [expandedFlightIndex, setExpandedFlightIndex] = useState<number | null>(null);
+ // Assuming FlightDetails is the type you're using for the flight object
+  const [selectedFlight, setSelectedFlight] = useState<FlightDetails | null>(null);
+
+
+
   
   const searchParams = useLocalSearchParams();
   const { from, to, startDate, endDate, passengers, budget } = searchParams;
@@ -55,6 +60,11 @@ export default function FlightListings() {
   const handleSelectFlight = (flight: FlightDetails) => {
     console.log(flight);
     alert(`Selected flight: ${JSON.stringify(flight, null, 2)}`);
+
+    router.push({
+      pathname: "/hotels",
+      params: { from, to, startDate, endDate, passengers, budget },
+    });
   };
 
   const renderFlightCard = ({ item, index }: { item: FlightDetails; index: number }) => (

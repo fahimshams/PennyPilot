@@ -92,15 +92,6 @@ export const TravelForm = () => {
       return;
     }
 
-    // try{
-
-    //   const response = await fetch(
-    //      `http://localhost:5000/api/searchFlights?originLocationCode=${from}&destinationLocationCode=${to}&departureDate=${startDateInput}&returnDate=${endDateInput}&adults=${passengers}&travelBudget=${budget}`
-    //   );
-
-    //   if (!response.ok) {
-    //     throw new Error('Failed to fetch flights');
-    //   }
 
       router.push({
         pathname: "/flights",
@@ -108,14 +99,7 @@ export const TravelForm = () => {
       
        });
 
-      
-
-    // }
-    // catch(error){
-    //   console.error(error);
-    //   alert('There was an error fetching the flight details.');
-    
-    // }
+  
     
 
     

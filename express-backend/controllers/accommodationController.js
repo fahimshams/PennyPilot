@@ -1,5 +1,42 @@
 const amadeusService = require('../services/amadeusService');
 
+// Helper function to extract hotel details based on budget and essential info
+// Helper function to extract and filter hotel details
+const extractHotelDetails = (hotelsData, budget) => {
+  return hotelsData
+    .flat() // Flatten the array if each hotel is wrapped in its own array
+    .map(hotelData => {
+      // Check if hotelData and its offer array are valid
+      if (!hotelData || !hotelData.offers || hotelData.offers.length === 0) {
+        return null;
+      }
+
+      // Extract the first offer and basic hotel information
+      const offer = hotelData.offers[0];
+      const { hotel } = hotelData;
+
+      // Verify if the offer price is within the budget if provided
+      if (budget && parseFloat(offer.price.total) > budget) {
+        return null;
+      }
+
+      // Return only necessary details
+      return {
+        name: hotel.name,
+        latitude: hotel.latitude,
+        longitude: hotel.longitude,
+        checkInDate: offer.checkInDate,
+        checkOutDate: offer.checkOutDate,
+        price: offer.price.total,
+        currency: offer.price.currency,
+        bedType: offer.room.typeEstimated.bedType,
+        adults: offer.guests.adults,
+      };
+    })
+    .filter(hotel => hotel !== null); // Remove null entries
+};
+
+
 // Controller method for hotel search
 exports.searchHotels = async (req, res) => {
   const { cityCode, adults, checkInDate, checkOutDate, budget } = req.query;
@@ -37,12 +74,7 @@ exports.searchHotels = async (req, res) => {
         batch.map(async (id) => {
           try {
             const hotel = await amadeusService.searchHotels(id, adults, checkInDate, checkOutDate);
-            
-            // Check if the hotel matches the budget, if a budget is provided
-            if (hotel && (!budget || hotel.offers[0].price.total <= budget)) {
-              console.log(hotel.offers[0].price.total)
-              return hotel;
-            }
+            return hotel; // Return hotel for further processing
           } catch (err) {
             console.warn(`Error fetching details for hotel ID ${id}: ${err.message}`);
           }
@@ -58,9 +90,12 @@ exports.searchHotels = async (req, res) => {
       fetchedHotels += validHotels.length;
     }
 
-    // Send the response with the hotel data
+    // Extract only the necessary details and apply budget filtering
+    const filteredHotelDetails = extractHotelDetails(hotels, budget);
+    // extractHotelDetails(hotels, budget);
 
-    return res.json(hotels.slice(0, targetCount)); // Ensure only the target count is returned
+    // Send the response with the filtered hotel data
+    return res.json(filteredHotelDetails.slice(0, targetCount)); // Ensure only the target count is returned
 
   } catch (error) {
     return res.status(500).json({ error: error.message });

@@ -90,9 +90,30 @@ const searchHotels = async (hotelIds, adults, checkInDate, checkOutDate) => {
     }
 }
 
+const searchActivities = async (latitude, longitude, radius=1) => {
+    try {
+        const response = await amadeus.shopping.activities.get({
+            latitude: latitude,
+            longitude: longitude,
+            radius: radius
+
+        })
+
+        console.log(response.data.length)
+        return response.data;
+
+    }
+
+    catch (error) {
+        console.error(error);
+        throw new Error('Error fetching activity data from Amadeus');
+    }
+}
+
 module.exports ={
     searchFlights,
     searchCarRentals,
     searchHotelsIds,
-    searchHotels
+    searchHotels,
+    searchActivities
 }

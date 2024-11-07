@@ -13,6 +13,7 @@ var apiRouter = require('./routes/api');
 var flightsRouter = require('./routes/flights');
 var carRentalRouter = require('./routes/carRentals')
 var accomodationRouter = require('./routes/hotels');
+var activitiesRouter = require('./routes/activities')
 
 var app = express();
 
@@ -33,6 +34,7 @@ app.use('/api', apiRouter);
 app.use('/api/searchFlights', flightsRouter);
 app.use('/api/searchCarRentals', carRentalRouter);
 app.use('/api/accommodation', accomodationRouter)
+app.use('/api/activities', activitiesRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

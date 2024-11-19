@@ -99,7 +99,6 @@ const searchActivities = async (latitude, longitude, radius=1) => {
 
         })
 
-        console.log(response.data.length)
         return response.data;
 
     }

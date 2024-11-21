@@ -1,4 +1,5 @@
 const amadeusService = require('../services/amadeusService');
+const usaCitiesIATA = require("../data/CityIata"); 
 
 
 
@@ -53,13 +54,17 @@ const extractFlightDetails = (responseData, travelBudget) => {
 
 // Controller method for flight search
 exports.searchFlights = async (req, res) => {
-  const { originLocationCode, destinationLocationCode, departureDate, returnDate, adults, travelBudget, currencyCode="USD" } = req.query;
+  var { originLocationCode, destinationLocationCode, departureDate, returnDate, adults, travelBudget, currencyCode="USD" } = req.query;
 
+  
   try {
     // Validate input
     if (!originLocationCode || !destinationLocationCode || !departureDate || !returnDate || !adults) {
       return res.status(400).json({ message: 'Missing required parameters' });
     }
+
+    originLocationCode = usaCitiesIATA[originLocationCode];
+    destinationLocationCode = usaCitiesIATA[destinationLocationCode];
 
     // Call Amadeus service
     const flights = await amadeusService.searchFlights(originLocationCode, destinationLocationCode, departureDate, returnDate, adults, currencyCode);

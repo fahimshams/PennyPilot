@@ -1,4 +1,5 @@
 const amadeusService = require('../services/amadeusService');
+const usaCitiesIATA = require("../data/CityIata"); 
 
 // Helper function to extract hotel details based on budget and essential info
 // Helper function to extract and filter hotel details
@@ -39,7 +40,7 @@ const extractHotelDetails = (hotelsData, budget) => {
 
 // Controller method for hotel search
 exports.searchHotels = async (req, res) => {
-  const { cityCode, adults, checkInDate, checkOutDate, budget } = req.query;
+  var { cityCode, adults, checkInDate, checkOutDate, budget } = req.query;
   const hotels = [];
   let fetchedHotels = 0;
   const batchSize = 3; // Number of hotel IDs to fetch in each batch
@@ -51,6 +52,9 @@ exports.searchHotels = async (req, res) => {
     if (!cityCode) {
       return res.status(400).json({ message: 'Missing required parameters' });
     }
+
+    cityCode = usaCitiesIATA[cityCode];
+
 
     // Call Amadeus service to get hotel IDs
     hotelIds = await amadeusService.searchHotelsIds(cityCode);

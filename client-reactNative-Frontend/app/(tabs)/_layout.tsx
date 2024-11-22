@@ -8,7 +8,7 @@ export default function TabLayout() {
     <Stack.Screen 
       name="index" 
       options={{ 
-        headerShown: true,
+        headerShown: false,
         title: 'PennyPilot'
       }} 
     />
@@ -16,7 +16,14 @@ export default function TabLayout() {
       name="flights" 
       options={{ 
         headerShown: true,
-        title: 'Available Flights'
+        title: 'Available Flights | Rental Cars | Private Cars'
+      }} 
+    />
+      <Stack.Screen 
+      name="hotels" 
+      options={{ 
+        headerShown: true,
+        title: 'Available Hotels'
       }} 
     />
   </Stack>

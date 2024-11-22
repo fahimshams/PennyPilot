@@ -2,7 +2,7 @@ var usaCitiesIATA = {
     "Atlanta": "ATL",
     "Los Angeles": "LAX",
     "Chicago": "ORD",
-    "Dallas/Fort Worth": "DFW",
+    "Dallas": "DFW",
     "Denver": "DEN",
     "New York": "JFK",
     "San Francisco": "SFO",

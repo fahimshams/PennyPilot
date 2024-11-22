@@ -77,7 +77,6 @@ export default function FlightListings() {
 
   const handleSelectFlight = (flight: FlightDetails) => {
     console.log(flight);
-    alert(`Selected flight: ${JSON.stringify(flight, null, 2)}`);
 
     router.push({
       pathname: "/hotels",
@@ -85,30 +84,32 @@ export default function FlightListings() {
     });
   };
 
-  const renderFlightCard = ({ item, index }: { item: FlightDetails; index: number }) => (
-    
-    <Pressable style={styles.flightCard} onPress={() => handleExpandToggle(index)}>
-      
+  const renderFlightCard = ({ item }: { item: FlightDetails }) => (
+    <View style={styles.flightCard}>
+      {/* Price and passenger info */}
       <View style={styles.priceRow}>
         <Text style={styles.priceText}>${item.price}</Text>
         <Text>{item.passengers} passenger(s)</Text>
       </View>
-
-      {/* Departure flight details */}
-      <Text style={styles.sectionTitle}>Departure:</Text>
-      {item.departure.map((segment, idx) => (
-        <View key={idx} style={styles.segmentDetails}>
-          <Text style={styles.segmentText}>
-            {segment.from} → {segment.to}
-          </Text>
-          <Text>Departure: {segment.departureTime}</Text>
-          <Text>Arrival: {segment.arrivalTime}</Text>
+  
+      {/* Departure and Return Details */}
+      <View style={styles.flightDetailsRow}>
+        {/* Departure Details */}
+        <View style={styles.flightDetailsColumn}>
+          <Text style={styles.sectionTitle}>Departure:</Text>
+          {item.departure.map((segment, idx) => (
+            <View key={idx} style={styles.segmentDetails}>
+              <Text style={styles.segmentText}>
+                {segment.from} → {segment.to}
+              </Text>
+              <Text>Departure: {segment.departureTime}</Text>
+              <Text>Arrival: {segment.arrivalTime}</Text>
+            </View>
+          ))}
         </View>
-      ))}
-
-      {/* Show return flight details if expanded */}
-      {expandedFlightIndex === index && (
-        <>
+  
+        {/* Return Details */}
+        <View style={styles.flightDetailsColumn}>
           <Text style={styles.sectionTitle}>Return:</Text>
           {item.return.map((segment, idx) => (
             <View key={idx} style={styles.segmentDetails}>
@@ -119,11 +120,19 @@ export default function FlightListings() {
               <Text>Arrival: {segment.arrivalTime}</Text>
             </View>
           ))}
-          <Button title="Select Flight" onPress={() => handleSelectFlight(item)} />
-        </>
-      )}
-    </Pressable>
+        </View>
+      </View>
+  
+      {/* Select Flight Button */}
+      <TouchableOpacity
+        style={styles.selectButton}
+        onPress={() => handleSelectFlight(item)}
+      >
+        <Text style={styles.selectButtonText}>Select Flight</Text>
+      </TouchableOpacity>
+    </View>
   );
+  
 
   const renderCarCard = ({ item }: { item: any }) => (
     <View style={styles.carCard}>
@@ -323,5 +332,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 10,
     color: '#666',
+  },
+  flightDetailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  flightDetailsColumn: {
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  selectButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-end',
+    marginTop: 12,
+  },
+  selectButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });

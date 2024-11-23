@@ -5,20 +5,34 @@ import TopBar from '../../components/TopBarComponent';
 
 // Define TypeScript interfaces for the flight data structure
 interface FlightSegment {
-  from: string;
-  to: string;
-  departureTime: string;
-  arrivalTime: string;
-  stops: string;
-  stopDuration: string;
+  from: string; // Origin IATA code
+  to: string; // Destination IATA code
+  departureTime: string; // Departure time
+  arrivalTime: string; // Arrival time
+  duration: string; // Flight segment duration
+  stops: number; // Number of stops
+  flightNumber: string; // Flight number
+  aircraft: string; // Aircraft type
+  stopDuration?: string; // Duration of layovers, if applicable
 }
 
 interface FlightDetails {
-  price: string;
-  passengers: number;
-  departure: FlightSegment[];
-  return: FlightSegment[];
+  price: {
+    total: string; // Total price of the flight
+    currency: string; // Currency of the price
+  };
+  passengers: number; // Number of passengers
+  airline: string; // Name of the airline
+  departureDetails: {
+    totalDuration: string; // Total duration for departure
+    segments: FlightSegment[]; // Array of departure flight segments
+  };
+  returnDetails: {
+    totalDuration: string; // Total duration for return
+    segments: FlightSegment[]; // Array of return flight segments
+  };
 }
+
 const rentalCarsData = [
   { id: '1', name: 'Toyota Corolla', price: '$50/day', passengers: 5 },
   { id: '2', name: 'Honda Accord', price: '$60/day', passengers: 5 },
@@ -88,22 +102,34 @@ export default function FlightListings() {
     <View style={styles.flightCard}>
       {/* Price and passenger info */}
       <View style={styles.priceRow}>
-        <Text style={styles.priceText}>${item.price}</Text>
+        <Text style={styles.priceText}>
+          {item.price.currency} {item.price.total}
+        </Text>
         <Text>{item.passengers} passenger(s)</Text>
+        <Text style={styles.airlineText}>{item.airline}</Text>
       </View>
   
-      {/* Departure and Return Details */}
+      {/* Departure and Return Details in Row */}
       <View style={styles.flightDetailsRow}>
         {/* Departure Details */}
         <View style={styles.flightDetailsColumn}>
           <Text style={styles.sectionTitle}>Departure:</Text>
-          {item.departure.map((segment, idx) => (
+          <Text style={styles.totalDuration}>
+            Total Duration: {item.departureDetails.totalDuration}
+          </Text>
+          {item.departureDetails.segments.map((segment, idx) => (
             <View key={idx} style={styles.segmentDetails}>
               <Text style={styles.segmentText}>
                 {segment.from} → {segment.to}
               </Text>
+              <Text>Flight No: {segment.flightNumber}</Text>
+              <Text>Aircraft: {segment.aircraft}</Text>
               <Text>Departure: {segment.departureTime}</Text>
               <Text>Arrival: {segment.arrivalTime}</Text>
+              <Text>Duration: {segment.duration}</Text>
+              {segment.stops > 0 && (
+                <Text>Layover: {segment.stopDuration}</Text>
+              )}
             </View>
           ))}
         </View>
@@ -111,13 +137,22 @@ export default function FlightListings() {
         {/* Return Details */}
         <View style={styles.flightDetailsColumn}>
           <Text style={styles.sectionTitle}>Return:</Text>
-          {item.return.map((segment, idx) => (
+          <Text style={styles.totalDuration}>
+            Total Duration: {item.returnDetails.totalDuration}
+          </Text>
+          {item.returnDetails.segments.map((segment, idx) => (
             <View key={idx} style={styles.segmentDetails}>
               <Text style={styles.segmentText}>
                 {segment.from} → {segment.to}
               </Text>
+              <Text>Flight No: {segment.flightNumber}</Text>
+              <Text>Aircraft: {segment.aircraft}</Text>
               <Text>Departure: {segment.departureTime}</Text>
               <Text>Arrival: {segment.arrivalTime}</Text>
+              <Text>Duration: {segment.duration}</Text>
+              {segment.stops > 0 && (
+                <Text>Layover: {segment.stopDuration}</Text>
+              )}
             </View>
           ))}
         </View>
@@ -132,6 +167,7 @@ export default function FlightListings() {
       </TouchableOpacity>
     </View>
   );
+  
   
 
   const renderCarCard = ({ item }: { item: any }) => (
@@ -228,6 +264,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  
   header: {
     backgroundColor: '#4CAF50',
     padding: 16,
@@ -278,25 +315,172 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   flightCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: 12,
+    marginVertical: 8,
     padding: 16,
-    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  airlineContainer: {
+    flex: 1,
+  },
+  airlineText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  passengerText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  priceCurrency: {
+    fontSize: 14,
+    color: '#666',
+  },
+  priceAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2a9d8f',
+  },
+  journeyContainer: {
+    gap: 20,
+  },
+  journeySection: {
+    gap: 12,
+  },
+  journeyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  journeyTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    letterSpacing: 1,
+  },
+  totalDuration: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  segment: {
+    gap: 8,
+  },
+  routeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+  },
+  locationTime: {
+    width: '25%',
+    alignItems: 'center',
+  },
+  time: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  location: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  flightPathContainer: {
+    flex: 1,
+    paddingHorizontal: 8,
+  },
+  flightPath: {
+    alignItems: 'center',
+    position: 'relative',
+  },
+  pathLine: {
+    position: 'absolute',
+    top: '30%',
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: '#ddd',
+    zIndex: 1,
+  },
+  flightNumber: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 4,
+    marginBottom: 2,
+    zIndex: 2,
+  },
+  aircraftType: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 4,
+    marginBottom: 2,
+    zIndex: 2,
+  },
+  duration: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 4,
+    zIndex: 2,
+  },
+  layoverInfo: {
+    backgroundColor: '#fff3e6',
+    padding: 8,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  layoverText: {
+    fontSize: 13,
+    color: '#cc7000',
+    fontWeight: '500',
+  },
+  selectButton: {
+    backgroundColor: '#2a9d8f',
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  selectButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   priceText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#2a9d8f',
   },
   sectionTitle: {
     fontSize: 16,
@@ -304,12 +488,15 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   segmentDetails: {
-    marginTop: 5,
-    paddingLeft: 10,
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   segmentText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: 'bold',
+    color: '#333',
   },
   listContainer: {
     padding: 16,
@@ -336,23 +523,26 @@ const styles = StyleSheet.create({
   flightDetailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginVertical: 16,
   },
   flightDetailsColumn: {
     flex: 1,
     marginHorizontal: 8,
   },
-  selectButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignSelf: 'flex-end',
-    marginTop: 12,
+ 
+
+
+  airlineRow: {
+    marginBottom: 10,
   },
-  selectButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
+  
+  flightDetailsSection: {
+    marginVertical: 10,
   },
+
+ 
+
+
+
+
 });

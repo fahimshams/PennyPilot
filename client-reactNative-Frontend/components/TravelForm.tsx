@@ -17,6 +17,7 @@ export const TravelForm = () => {
   const [slogan, setSlogan] = useState('');
   const fullSlogan = 'Flly Smart Travel Smart! Where Every Penny Plays Its Part!'; // Your slogan text
   const typingSpeed = 90; // Speed in milliseconds between each character
+  const [errors, setErrors] = useState('');
 
   const isWeb = Platform.OS === 'web';
 
@@ -90,14 +91,14 @@ export const TravelForm = () => {
 
   const handleSubmit = () => {
     if (!from || !to || !passengers || !budget) {
-      alert('Please fill in all fields');
+     setErrors("Please fill all fields");
       return;
     }
 
-    if (endDate < startDate) {
-      alert('End date cannot be before start date');
-      return;
-    }
+    // if (endDate < startDate) {
+    //   alert('End date cannot be before start date');
+    //   return;
+    // }
 
     const flightBudget = parseFloat(budget) * 0.3;
 
@@ -229,7 +230,9 @@ export const TravelForm = () => {
                 onChangeText={setBudget}
               />
             </View>
+           
           </View>
+          {errors ? <Text style={styles.errorText}>{errors}</Text> : null}
           {/* Submit Button */}
           <Button title="Let's Board!" onPress={handleSubmit} />
         </View>
@@ -307,4 +310,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#f9f9f9',
   },
+  errorText: { color: 'red', fontSize: 18, marginTop: 4, marginBottom: 12, textAlign: 'center'}
 });

@@ -1,5 +1,6 @@
 const amadeusService = require('../services/amadeusService');
-const usaCitiesIATA = require("../data/CityIata"); 
+const usaCitiesIATA = require("../data/CityIata");
+const flights = require('../data/dummyFlightData'); 
 
 
 
@@ -94,7 +95,7 @@ exports.searchFlights = async (req, res) => {
     destinationLocationCode = usaCitiesIATA[destinationLocationCode];
 
     // Call Amadeus service
-    const flights = await amadeusService.searchFlights(originLocationCode, destinationLocationCode, departureDate, returnDate, adults, currencyCode);
+    // const flights = await amadeusService.searchFlights(originLocationCode, destinationLocationCode, departureDate, returnDate, adults, currencyCode);
     const flightDetails = extractFlightDetails(flights, travelBudget);
     res.status(200).json(flightDetails);
   } catch (error) {

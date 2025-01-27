@@ -1,51 +1,101 @@
 const amadeusService = require('../services/amadeusService');
+const usaCitiesIATA = require("../data/CityIata");
+const flights = require('../data/dummyFlightData'); 
 
 
 
+// Update the extractFlightDetails function
 const extractFlightDetails = (responseData, travelBudget) => {
+  // Airline mapping object
+  const airlineCodes = {
+      "F9": "Frontier Airlines",
+      "AA": "American Airlines",
+      "DL": "Delta Air Lines",
+      "UA": "United Airlines",
+      "BA": "British Airways",
+      "B6": "JetBlue Airways"
+      // Add more airline codes and names
+  };
+
   return responseData
-    .filter(flight => parseFloat(flight.price.grandTotal) <= travelBudget) // Filter based on travel budget
-    .map(flight => {
-      let departure = flight.itineraries[0]; // departure itinerary
-      let returnFlight = flight.itineraries[1]; // return itinerary
-      let passengers = flight.travelerPricings.length; // number of passengers
-      let price = flight.price.grandTotal; // price of the flight
+      .filter(flight => parseFloat(flight.price.grandTotal) <= travelBudget) // Filter flights within budget
+      .map(flight => {
+          const departure = flight.itineraries[0];
+          const returnFlight = flight.itineraries[1];
+          const passengers = flight.travelerPricings.length;
+          const totalPrice = flight.price.grandTotal;
+          const baseFare = flight.price.base;
+          const currency = flight.price.currency;
+          const airlineCode = flight.validatingAirlineCodes[0];
+          const airlineName = airlineCodes[airlineCode] || airlineCode; // Get airline name or default to code
 
-      // Map the departure and return segments
-      const departureSegments = departure.segments.map(segment => ({
-        from: segment.departure.iataCode,
-        to: segment.arrival.iataCode,
-        departureTime: segment.departure.at
-      }));
+          const formatDateTime = (dateTime) => {
+              const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
+              return new Date(dateTime).toLocaleString('en-US', options);
+          };
 
-      const returnSegments = returnFlight.segments.map(segment => ({
-        from: segment.departure.iataCode,
-        to: segment.arrival.iataCode,
-        returnTime: segment.departure.at
-      }));
+          const formatDuration = (duration) => {
+              const match = duration.match(/PT(\d+H)?(\d+M)?/);
+              const hours = match[1] ? match[1].replace('H', '') : '0';
+              const minutes = match[2] ? match[2].replace('M', '') : '0';
+              return `${hours}h ${minutes}m`;
+          };
 
-      // Return the structured flight details
-      return {
-        price: price,
-        passengers: passengers,
-        departure: departureSegments,
-        return: returnSegments
-      };
-    });
-}
+          const mapSegments = (segments) => segments.map(segment => ({
+              from: segment.departure.iataCode,
+              to: segment.arrival.iataCode,
+              departureTime: formatDateTime(segment.departure.at),
+              arrivalTime: formatDateTime(segment.arrival.at),
+              flightNumber: `${segment.carrierCode}${segment.number}`,
+              duration: formatDuration(segment.duration),
+              aircraft: segment.aircraft.code,
+              stops: segment.numberOfStops,
+              airline: airlineCodes[segment.operating.carrierCode] || segment.operating.carrierCode // Map to name
+          }));
+
+          const departureSegments = mapSegments(departure.segments);
+          const returnSegments = mapSegments(returnFlight.segments);
+
+          return {
+              price: {
+                  total: totalPrice,
+                  base: baseFare,
+                  currency: currency
+              },
+              passengers: passengers,
+              airline: airlineName, // Airline name
+              departureDetails: {
+                  totalDuration: formatDuration(departure.duration),
+                  segments: departureSegments
+              },
+              returnDetails: {
+                  totalDuration: formatDuration(returnFlight.duration),
+                  segments: returnSegments
+              }
+          };
+      });
+};
+
+
+
+
 
 // Controller method for flight search
 exports.searchFlights = async (req, res) => {
-  const { originLocationCode, destinationLocationCode, departureDate, returnDate, adults, travelBudget } = req.query;
+  var { originLocationCode, destinationLocationCode, departureDate, returnDate, adults, travelBudget, currencyCode="USD" } = req.query;
 
+  
   try {
     // Validate input
     if (!originLocationCode || !destinationLocationCode || !departureDate || !returnDate || !adults) {
       return res.status(400).json({ message: 'Missing required parameters' });
     }
 
+    originLocationCode = usaCitiesIATA[originLocationCode];
+    destinationLocationCode = usaCitiesIATA[destinationLocationCode];
+
     // Call Amadeus service
-    const flights = await amadeusService.searchFlights(originLocationCode, destinationLocationCode, departureDate, returnDate, adults);
+    // const flights = await amadeusService.searchFlights(originLocationCode, destinationLocationCode, departureDate, returnDate, adults, currencyCode);
     const flightDetails = extractFlightDetails(flights, travelBudget);
     res.status(200).json(flightDetails);
   } catch (error) {

@@ -8,14 +8,15 @@ var amadeus = new Amadeus({
 });
 
 //Service for flights from amadeus
-const searchFlights = async (originLocationCode, destinationLocationCode, departureDate, returnDate, adults) => {
+const searchFlights = async (originLocationCode, destinationLocationCode, departureDate, returnDate, adults, currencyCode) => {
     try {
         const response = await amadeus.shopping.flightOffersSearch.get({
             originLocationCode: originLocationCode,
             destinationLocationCode: destinationLocationCode,
             departureDate: departureDate,
             returnDate: returnDate,
-            adults: adults
+            adults: adults,
+            currencyCode: currencyCode
         })
 
 
@@ -46,7 +47,7 @@ const searchCarRentals = async (pickUpLocationCode, dropOffLocationCode, pickUpD
 
 
 //Service to get hotel IDs from amadeus
-const searchHotels = async (cityCode) => {
+const searchHotelsIds = async (cityCode) => {
     try {
         const response = await amadeus.referenceData.locations.hotels.byCity.get({
             cityCode: cityCode,
@@ -55,12 +56,11 @@ const searchHotels = async (cityCode) => {
         })
 
         const hotelIds = response.data.map(hotel => {
-            return hotel.hotelId;
+           return (hotel.hotelId)    
         })
 
-        return hotelIds;
 
-        // return response.data;
+        return hotelIds;
     }
 
     catch (error) {
@@ -69,8 +69,50 @@ const searchHotels = async (cityCode) => {
     }
 }
 
+const searchHotels = async (hotelIds, adults, checkInDate, checkOutDate) => {
+    try {
+        const response = await amadeus.shopping.hotelOffersSearch.get({
+            hotelIds: hotelIds,
+            adults: adults,
+            checkInDate: checkInDate,
+            checkOutDate: checkOutDate
+
+        })
+
+        return response.data;
+
+        // return response.data;
+    }
+
+    catch (error) {
+        console.error(error);
+        throw new Error('Error fetching hotel data from Amadeus');
+    }
+}
+
+const searchActivities = async (latitude, longitude, radius=1) => {
+    try {
+        const response = await amadeus.shopping.activities.get({
+            latitude: latitude,
+            longitude: longitude,
+            radius: radius
+
+        })
+
+        return response.data;
+
+    }
+
+    catch (error) {
+        console.error(error);
+        throw new Error('Error fetching activity data from Amadeus');
+    }
+}
+
 module.exports ={
     searchFlights,
     searchCarRentals,
-    searchHotels
+    searchHotelsIds,
+    searchHotels,
+    searchActivities
 }

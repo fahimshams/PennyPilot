@@ -20,20 +20,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: express-backend/package-lock.json
 
-    - name: Cache npm dependencies for Backend
-      uses: actions/cache@v2
-      with:
-        path: express-backend/node_modules  # Cache node_modules directory
-        key: ${{ runner.os }}-node-backend-${{ hashFiles('express-backend/package.json') }}  # Use package.json hash
-        restore-keys: |
-          ${{ runner.os }}-node-backend-
-
-    - run: npm install
-      working-directory: express-backend  # Install dependencies from package.json
-
-    - run: npm install amadeus
-      working-directory: express-backend  # Install amadeus separately if not in package.json
+    - run: npm ci
+      working-directory: express-backend
 
     - run: npm run build --if-present
       working-directory: express-backend

@@ -213,7 +213,7 @@ export const TravelForm = () => {
         <View style={styles.boardingPass}>
           {/* Input Fields */}
           <View style={styles.row}>
-            <View style={styles.inputWrapper}>
+      <View style={styles.inputWrapper}>
               <Text style={styles.label}>From</Text>
               <TextInput
                 style={styles.input}

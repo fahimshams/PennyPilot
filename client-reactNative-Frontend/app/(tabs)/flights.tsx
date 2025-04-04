@@ -91,123 +91,123 @@ export default function FlightListings() {
       
       try {
         setIsFetching(true);
-        // const response = await fetch(
-        //   `http://localhost:5000/api/searchFlights?originLocationCode=${searchParams.from}&destinationLocationCode=${searchParams.to}&departureDate=${searchParams.startDate}&returnDate=${searchParams.endDate}&adults=${searchParams.passengers}&travelBudget=${searchParams.budget}`
-        // );
+        const response = await fetch(
+          `http://localhost:5000/api/searchFlights?originLocationCode=${searchParams.from}&destinationLocationCode=${searchParams.to}&departureDate=${searchParams.startDate}&returnDate=${searchParams.endDate}&adults=${searchParams.passengers}&travelBudget=${searchParams.budget}`
+        );
 
-        // if (!response.ok) {
-        //   throw new Error('Failed to fetch flights');
-        // }
+        if (!response.ok) {
+          throw new Error('Failed to fetch flights');
+        }
 
-        // const data: FlightDetails[] = await response.json();
-        // setFlights(data);
+        const data: FlightDetails[] = await response.json();
+        setFlights(data);
         // Need to implement flight budget here.
         // Replace this with API logic above when ready
-        const dummyData: FlightDetails[] = [
-          {
-            price: {
-              total: "450",
-              currency: "USD"
-            },
-            passengers: parseInt(searchParams.passengers) || 1,
-            airline: "Delta Airlines",
-            departureDetails: {
-              totalDuration: "2h 30m",
-              segments: [{
-                from: searchParams.from,
-                to: searchParams.to,
-                departureTime: `${searchParams.startDate} 08:00`,
-                arrivalTime: `${searchParams.startDate} 10:30`,
-                duration: "2h 30m",
-                stops: 0,
-                flightNumber: "DL123",
-                aircraft: "Boeing 737"
-              }]
-            },
-            returnDetails: {
-              totalDuration: "2h 30m",
-              segments: [{
-                from: searchParams.to,
-                to: searchParams.from,
-                departureTime: `${searchParams.endDate} 18:00`,
-                arrivalTime: `${searchParams.endDate} 20:30`,
-                duration: "2h 30m",
-                stops: 0,
-                flightNumber: "DL124",
-                aircraft: "Boeing 737"
-              }]
-            }
-          },
-          {
-            price: {
-              total: "380",
-              currency: "USD"
-            },
-            passengers: parseInt(searchParams.passengers) || 1,
-            airline: "American Airlines",
-            departureDetails: {
-              totalDuration: "3h 15m",
-              segments: [{
-                from: searchParams.from,
-                to: searchParams.to,
-                departureTime: `${searchParams.startDate} 12:00`,
-                arrivalTime: `${searchParams.startDate} 15:15`,
-                duration: "3h 15m",
-                stops: 0,
-                flightNumber: "AA456",
-                aircraft: "Airbus A320"
-              }]
-            },
-            returnDetails: {
-              totalDuration: "3h 15m",
-              segments: [{
-                from: searchParams.to,
-                to: searchParams.from,
-                departureTime: `${searchParams.endDate} 16:00`,
-                arrivalTime: `${searchParams.endDate} 19:15`,
-                duration: "3h 15m",
-                stops: 0,
-                flightNumber: "AA457",
-                aircraft: "Airbus A320"
-              }]
-            }
-          },
-          {
-            price: {
-              total: "520",
-              currency: "USD"
-            },
-            passengers: parseInt(searchParams.passengers) || 1,
-            airline: "United Airlines",
-            departureDetails: {
-              totalDuration: "2h 45m",
-              segments: [{
-                from: searchParams.from,
-                to: searchParams.to,
-                departureTime: `${searchParams.startDate} 15:00`,
-                arrivalTime: `${searchParams.startDate} 17:45`,
-                duration: "2h 45m",
-                stops: 0,
-                flightNumber: "UA789",
-                aircraft: "Boeing 787"
-              }]
-            },
-            returnDetails: {
-              totalDuration: "2h 45m",
-              segments: [{
-                from: searchParams.to,
-                to: searchParams.from,
-                departureTime: `${searchParams.endDate} 20:00`,
-                arrivalTime: `${searchParams.endDate} 22:45`,
-                duration: "2h 45m",
-                stops: 0,
-                flightNumber: "UA790",
-                aircraft: "Boeing 787"
-              }]
-            }
-          }
-        ];
-        setFlights(dummyData);
+        // const dummyData: FlightDetails[] = [
+        //   {
+        //     price: {
+        //       total: "450",
+        //       currency: "USD"
+        //     },
+        //     passengers: parseInt(searchParams.passengers) || 1,
+        //     airline: "Delta Airlines",
+        //     departureDetails: {
+        //       totalDuration: "2h 30m",
+        //       segments: [{
+        //         from: searchParams.from,
+        //         to: searchParams.to,
+        //         departureTime: `${searchParams.startDate} 08:00`,
+        //         arrivalTime: `${searchParams.startDate} 10:30`,
+        //         duration: "2h 30m",
+        //         stops: 0,
+        //         flightNumber: "DL123",
+        //         aircraft: "Boeing 737"
+        //       }]
+        //     },
+        //     returnDetails: {
+        //       totalDuration: "2h 30m",
+        //       segments: [{
+        //         from: searchParams.to,
+        //         to: searchParams.from,
+        //         departureTime: `${searchParams.endDate} 18:00`,
+        //         arrivalTime: `${searchParams.endDate} 20:30`,
+        //         duration: "2h 30m",
+        //         stops: 0,
+        //         flightNumber: "DL124",
+        //         aircraft: "Boeing 737"
+        //       }]
+        //     }
+        //   },
+        //   {
+        //     price: {
+        //       total: "380",
+        //       currency: "USD"
+        //     },
+        //     passengers: parseInt(searchParams.passengers) || 1,
+        //     airline: "American Airlines",
+        //     departureDetails: {
+        //       totalDuration: "3h 15m",
+        //       segments: [{
+        //         from: searchParams.from,
+        //         to: searchParams.to,
+        //         departureTime: `${searchParams.startDate} 12:00`,
+        //         arrivalTime: `${searchParams.startDate} 15:15`,
+        //         duration: "3h 15m",
+        //         stops: 0,
+        //         flightNumber: "AA456",
+        //         aircraft: "Airbus A320"
+        //       }]
+        //     },
+        //     returnDetails: {
+        //       totalDuration: "3h 15m",
+        //       segments: [{
+        //         from: searchParams.to,
+        //         to: searchParams.from,
+        //         departureTime: `${searchParams.endDate} 16:00`,
+        //         arrivalTime: `${searchParams.endDate} 19:15`,
+        //         duration: "3h 15m",
+        //         stops: 0,
+        //         flightNumber: "AA457",
+        //         aircraft: "Airbus A320"
+        //       }]
+        //     }
+        //   },
+        //   {
+        //     price: {
+        //       total: "520",
+        //       currency: "USD"
+        //     },
+        //     passengers: parseInt(searchParams.passengers) || 1,
+        //     airline: "United Airlines",
+        //     departureDetails: {
+        //       totalDuration: "2h 45m",
+        //       segments: [{
+        //         from: searchParams.from,
+        //         to: searchParams.to,
+        //         departureTime: `${searchParams.startDate} 15:00`,
+        //         arrivalTime: `${searchParams.startDate} 17:45`,
+        //         duration: "2h 45m",
+        //         stops: 0,
+        //         flightNumber: "UA789",
+        //         aircraft: "Boeing 787"
+        //       }]
+        //     },
+        //     returnDetails: {
+        //       totalDuration: "2h 45m",
+        //       segments: [{
+        //         from: searchParams.to,
+        //         to: searchParams.from,
+        //         departureTime: `${searchParams.endDate} 20:00`,
+        //         arrivalTime: `${searchParams.endDate} 22:45`,
+        //         duration: "2h 45m",
+        //         stops: 0,
+        //         flightNumber: "UA790",
+        //         aircraft: "Boeing 787"
+        //       }]
+        //     }
+        //   }
+        // ];
+        // setFlights(dummyData);
       } catch (error) {
         console.error(error);
         alert("Error fetching flight details.");

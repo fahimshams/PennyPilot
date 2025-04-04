@@ -8,10 +8,12 @@ import {
   Button,
   ActivityIndicator,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TopBar from '../../components/TopBarComponent';
+import { useTravelSession } from '../../context/TravelSessionContext';
 
 interface HotelDetails {
   name: string;
@@ -26,6 +28,8 @@ interface HotelDetails {
 }
 
 const HotelListings = () => {
+  const router = useRouter();
+  const { session, addHotel, updateTravelDates, updateLocations } = useTravelSession();
   const [searchParams, setSearchParams] = useState({
     from: '',
     to: '',
@@ -38,14 +42,16 @@ const HotelListings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
 
-  const router = useRouter();
-
   useEffect(() => {
     const loadSearchParams = async () => {
       try {
         const storedParams = await AsyncStorage.getItem('searchParams');
         if (storedParams) {
-          setSearchParams(JSON.parse(storedParams));
+          const params = JSON.parse(storedParams);
+          setSearchParams(params);
+          // Update travel session with locations and dates
+          updateLocations({ from: params.from, to: params.to });
+          updateTravelDates({ startDate: params.startDate, endDate: params.endDate });
         }
       } catch (error) {
         console.error('Error loading search params:', error);
@@ -61,6 +67,13 @@ const HotelListings = () => {
     setSearchParams(newParams);
     try {
       await AsyncStorage.setItem('searchParams', JSON.stringify(newParams));
+      // Update travel session when locations or dates change
+      if (field === 'from' || field === 'to') {
+        updateLocations({ from: newParams.from, to: newParams.to });
+      }
+      if (field === 'startDate' || field === 'endDate') {
+        updateTravelDates({ startDate: newParams.startDate, endDate: newParams.endDate });
+      }
     } catch (error) {
       console.error('Error saving search params:', error);
     }
@@ -175,11 +188,40 @@ const HotelListings = () => {
   }
 
   const handleSelectHotel = (hotel: HotelDetails) => {
-    // Navigate to detailed hotel view (if required)
-    // router.push({
-    //   pathname: "/hotel-details",
-    //   params: { ...hotel },
-    // });
+    const selectedHotel = {
+      id: hotel.name.toLowerCase().replace(/\s+/g, '-'),
+      name: hotel.name,
+      location: to,
+      checkIn: hotel.checkInDate,
+      checkOut: hotel.checkOutDate,
+      price: hotel.price,
+      roomType: hotel.bedType
+    };
+
+    router.push({
+      pathname: "/activities",
+      params: { from: searchParams.from, to: searchParams.to, startDate: searchParams.startDate, endDate: searchParams.endDate, passengers: searchParams.passengers, budget: searchParams.budget },
+    });
+    
+    addHotel(selectedHotel);
+    Alert.alert(
+      'Success',
+      'Hotel added to your travel plan!',
+      [
+        {
+          text: 'Continue to Activities',
+          onPress: () => {
+            router.push('/activities');
+          }
+        },
+        {
+          text: 'View Travel Plan',
+          onPress: () => {
+            router.push('/travel-plan');
+          }
+        }
+      ]
+    );
   };
 
   const renderHotelCard = ({ item }: { item: HotelDetails }) => (

@@ -5,3 +5,8 @@ Packages installed
 - npm install
 - npm install dotenv
 - npm install amadeus --save
+
+
+
+- npm start for front-end
+- npm run dev for back-end

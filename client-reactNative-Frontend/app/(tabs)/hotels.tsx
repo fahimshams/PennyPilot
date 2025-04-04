@@ -10,6 +10,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import TopBar from '../../components/TopBarComponent';
 
 interface HotelDetails {
   name: string;
@@ -24,74 +26,119 @@ interface HotelDetails {
 }
 
 const HotelListings = () => {
-  const { from, to, startDate, endDate, passengers, budget } =
-    useLocalSearchParams();
+  const [searchParams, setSearchParams] = useState({
+    from: '',
+    to: '',
+    startDate: '',
+    endDate: '',
+    passengers: '',
+    budget: ''
+  });
   const [hotels, setHotels] = useState<HotelDetails[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
 
   const router = useRouter();
 
-  // Dummy Data (replace with API data when needed)
+  useEffect(() => {
+    const loadSearchParams = async () => {
+      try {
+        const storedParams = await AsyncStorage.getItem('searchParams');
+        if (storedParams) {
+          setSearchParams(JSON.parse(storedParams));
+        }
+      } catch (error) {
+        console.error('Error loading search params:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadSearchParams();
+  }, []);
+
+  const handleSearchParamsChange = async (field: string, value: string) => {
+    const newParams = { ...searchParams, [field]: value };
+    setSearchParams(newParams);
+    try {
+      await AsyncStorage.setItem('searchParams', JSON.stringify(newParams));
+    } catch (error) {
+      console.error('Error saving search params:', error);
+    }
+  };
+  
   useEffect(() => {
     const fetchHotels = async () => {
+      if (!searchParams.to) return;
+      
       try {
-        setLoading(true);
+        setIsFetching(true);
         // Replace this with API logic when ready
         const dummyData: HotelDetails[] = [
           {
-            name: "Best Western Plus Arena Hotel",
-            latitude: 40.67837,
-            longitude: -73.94654,
-            checkInDate: "2025-01-09",
-            checkOutDate: "2025-01-12",
-            price: "881.33",
+            name: "Best Western " + searchParams.to,
+            latitude: 40.7128,
+            longitude: -74.0060,
+            checkInDate: searchParams.startDate,
+            checkOutDate: searchParams.endDate,
+            price: "250",
             currency: "USD",
-            bedType: "KING",
-            adults: 2
+            bedType: "King",
+            adults: parseInt(searchParams.passengers) || 2
           },
           {
-            name: "Fairfield Inn by Marriott New York JFK Airport",
-            latitude: 40.66632,
-            longitude: -73.77945,
-            checkInDate: "2025-01-09",
-            checkOutDate: "2025-01-12",
-            price: "750.63",
+            name: "Fairfield Inn by Marriott " + searchParams.to,
+            latitude: 40.7128,
+            longitude: -74.0060,
+            checkInDate: searchParams.startDate,
+            checkOutDate: searchParams.endDate,
+            price: "300",
             currency: "USD",
-            bedType: "KING",
-            adults: 2
+            bedType: "King",
+            adults: parseInt(searchParams.passengers) || 2
           },
           {
-            name: "HILTON GARDEN INN QUEENS JFK AR",
-            latitude: 40.66529,
-            longitude: -73.80603,
-            checkInDate: "2025-01-09",
-            checkOutDate: "2025-01-12",
-            price: "903.30",
+            name: "Luxury Inn " + searchParams.to,
+            latitude: 40.7128,
+            longitude: -74.0060,
+            checkInDate: searchParams.startDate,
+            checkOutDate: searchParams.endDate,
+            price: "350",
             currency: "USD",
-            bedType: "KING",
-            adults: 2
+            bedType: "Queen",
+            adults: parseInt(searchParams.passengers) || 2
           },
           {
-            name: "HILTON GARDEN INN MELVILLE",
-            latitude: 40.78224,
-            longitude: -73.44408,
-            checkInDate: "2025-01-09",
-            checkOutDate: "2025-01-12",
-            price: "533.97",
+            name: "City View Hotel " + searchParams.to,
+            latitude: 40.7128,
+            longitude: -74.0060,
+            checkInDate: searchParams.startDate,
+            checkOutDate: searchParams.endDate,
+            price: "200",
             currency: "USD",
-            bedType: "KING",
-            adults: 2
+            bedType: "Double",
+            adults: parseInt(searchParams.passengers) || 2
           },
           {
-            name: "HILTON GARDEN INN WESTBURY",
-            latitude: 40.74575,
-            longitude: -73.58796,
-            checkInDate: "2025-01-09",
-            checkOutDate: "2025-01-12",
-            price: "668.36",
+            name: "Riverside Inn " + searchParams.to,
+            latitude: 40.7128,
+            longitude: -74.0060,
+            checkInDate: searchParams.startDate,
+            checkOutDate: searchParams.endDate,
+            price: "180",
             currency: "USD",
-            bedType: "KING",
-            adults: 2
+            bedType: "Twin",
+            adults: parseInt(searchParams.passengers) || 2
+          },
+          {
+            name: "Harbor View Hotel " + searchParams.to,
+            latitude: 40.7128,
+            longitude: -74.0060,
+            checkInDate: searchParams.startDate,
+            checkOutDate: searchParams.endDate,
+            price: "275",
+            currency: "USD",
+            bedType: "Queen",
+            adults: parseInt(searchParams.passengers) || 2
           }
         ];
         setHotels(dummyData);
@@ -99,12 +146,33 @@ const HotelListings = () => {
         console.error(error);
         alert("Error fetching hotel details.");
       } finally {
-        setLoading(false);
+        setIsFetching(false);
       }
     };
 
     fetchHotels();
-  }, []);
+  }, [searchParams.to, searchParams.startDate, searchParams.endDate, searchParams.passengers]);
+
+  const { from, to, startDate, endDate, passengers, budget } = searchParams;
+  const hasValidSearch = from && to && from !== 'undefined' && to !== 'undefined';
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!hasValidSearch) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Please search for a destination to view hotels....</Text>
+      </View>
+    );
+  }
 
   const handleSelectHotel = (hotel: HotelDetails) => {
     // Navigate to detailed hotel view (if required)
@@ -133,34 +201,33 @@ const HotelListings = () => {
     </Pressable>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007BFF" />
-        <Text style={styles.loadingText}>Fetching hotels...</Text>
-      </View>
-    );
-  }
-
-  if (!hotels.length) {
-    return (
-      <View style={styles.noHotelsContainer}>
-        <Text style={styles.noHotelsText}>No hotels found.</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      <TopBar 
+        from={from}
+        to={to}
+        startDate={startDate}
+        endDate={endDate}
+        passengers={passengers}
+        budget={budget}
+        onChange={handleSearchParamsChange}
+      />
       <Text style={styles.header}>
         Hotels for your trip from {from} to {to}
       </Text>
-      <FlatList
-        data={hotels}
-        renderItem={renderHotelCard}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.listContainer}
-      />
+      {isFetching ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Fetching hotels...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={hotels}
+          renderItem={renderHotelCard}
+          keyExtractor={(item, index) => index.toString()}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
     </View>
   );
 };
@@ -237,6 +304,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     alignSelf: 'flex-end',
     marginTop: 12,
+  },
+  messageText: {
+    fontSize: 16,
+    textAlign: 'center',
+    padding: 20,
+    color: '#666',
   },
 });
 

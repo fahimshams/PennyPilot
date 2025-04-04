@@ -101,7 +101,7 @@ export default function FlightListings() {
 
         // const data: FlightDetails[] = await response.json();
         // setFlights(data);
-
+        // Need to implement flight budget here.
         // Replace this with API logic above when ready
         const dummyData: FlightDetails[] = [
           {

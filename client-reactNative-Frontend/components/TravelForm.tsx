@@ -3,6 +3,7 @@ import { View, TextInput, Text, Button, StyleSheet, Platform, Image, TouchableOp
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
 import Autocomplete from 'react-native-autocomplete-input';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const TravelForm = () => {
   const [from, setFrom] = useState('');
@@ -16,7 +17,7 @@ export const TravelForm = () => {
   const [startDateInput, setStartDateInput] = useState('');
   const [endDateInput, setEndDateInput] = useState('');
   const [slogan, setSlogan] = useState('');
-  const fullSlogan = 'Flly Smart Travel Smart! Where Every Penny Plays Its Part!'; // Your slogan text
+  const fullSlogan = 'Flly Smart Travel Smart! Where Every Penny Plays Its Part!';
   const typingSpeed = 90; // Speed in milliseconds between each character
   const [errors, setErrors] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -91,18 +92,34 @@ export const TravelForm = () => {
     }
   }, []);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!from || !to || !passengers || !budget) {
       setErrors('Please fill all fields');
       return;
     }
 
-    const flightBudget = parseFloat(budget) * 0.3;
+    const searchParams = {
+      from,
+      to,
+      startDate: startDateInput,
+      endDate: endDateInput,
+      passengers,
+      budget
+    };
 
-    router.push({
-      pathname: '/flights',
-      params: { from, to, startDate: startDateInput, endDate: endDateInput, passengers, budget: flightBudget },
-    });
+    try {
+      // Store the search parameters in AsyncStorage for cross-tab access
+      await AsyncStorage.setItem('searchParams', JSON.stringify(searchParams));
+
+      // Navigate to the tabs layout with the search parameters
+      router.push({
+        pathname: '/(tabs)/flights',
+        params: searchParams
+      });
+    } catch (error) {
+      console.error('Error saving search params:', error);
+      setErrors('An error occurred while saving your search.');
+    }
   }, [from, to, passengers, budget, startDateInput, endDateInput]);
 
   const showDatePicker = useCallback(
@@ -263,11 +280,15 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   slogan: {
-    fontSize: 18, // Adjust the size as necessary
-    fontWeight: '300',
-    color: '#000',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4CAF50',
     marginTop: 10,
     marginBottom: 50,
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
     fontFamily: 'monospace', // Optional: use a monospace font for a more typing-like effect
   },
   logo: {

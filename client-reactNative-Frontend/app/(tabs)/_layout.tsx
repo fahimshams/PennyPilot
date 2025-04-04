@@ -1,33 +1,43 @@
-import { Stack } from 'expo-router';
+import { Tabs } from 'expo-router';
+import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import React from 'react';
 import { ChatBox } from '@/components/ChatBox';
 
 export default function TabLayout() {
   return (
     <>
-      <Stack>
-        <Stack.Screen 
-          name="index" 
-          options={{ 
-            headerShown: false,
-            title: 'PennyPilot'
-          }} 
+      <Tabs screenOptions={{
+        tabBarActiveTintColor: '#4CAF50',
+      }}>
+        <Tabs.Screen
+          name="flights"
+          options={{
+            title: 'Flights',
+            tabBarIcon: ({ color }) => <TabBarIcon name="airplane" color={color} />,
+          }}
         />
-        <Stack.Screen 
-          name="flights" 
-          options={{ 
-            headerShown: true,
-            title: 'Available Flights | Rental Cars | Private Cars'
-          }} 
+        <Tabs.Screen
+          name="rental-cars"
+          options={{
+            title: 'Rental Cars',
+            tabBarIcon: ({ color }) => <TabBarIcon name="car" color={color} />,
+          }}
         />
-        <Stack.Screen 
-          name="hotels" 
-          options={{ 
-            headerShown: true,
-            title: 'Available Hotels'
-          }} 
+        <Tabs.Screen
+          name="private-cars"
+          options={{
+            title: 'Private Cars',
+            tabBarIcon: ({ color }) => <TabBarIcon name="car-sport" color={color} />,
+          }}
         />
-      </Stack>
+        <Tabs.Screen
+          name="weather"
+          options={{
+            title: 'Weather',
+            tabBarIcon: ({ color }) => <TabBarIcon name="cloudy" color={color} />,
+          }}
+        />
+      </Tabs>
       <ChatBox />
     </>
   );

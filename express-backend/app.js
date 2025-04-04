@@ -1,5 +1,3 @@
-
-
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -15,6 +13,7 @@ var carRentalRouter = require('./routes/carRentals')
 var accomodationRouter = require('./routes/hotels');
 var activitiesRouter = require('./routes/activities')
 var mapBoxRouter = require('./routes/mapbox')
+var chatRouter = require('./routes/chat');
 
 var app = express();
 
@@ -37,6 +36,7 @@ app.use('/api/searchCarRentals', carRentalRouter);
 app.use('/api/accommodation', accomodationRouter)
 app.use('/api/activities', activitiesRouter)
 app.use('/api/suggestions', mapBoxRouter)
+app.use('/api/chat', chatRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

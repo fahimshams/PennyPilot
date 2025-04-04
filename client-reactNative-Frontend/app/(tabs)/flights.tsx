@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import TopBar from '../../components/TopBarComponent';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define TypeScript interfaces for the flight data structure
 interface FlightSegment {
@@ -46,36 +47,180 @@ const privateCarsData = [
 export default function FlightListings() {
   const [flights, setFlights] = useState<FlightDetails[]>([]);
   const [expandedFlightIndex, setExpandedFlightIndex] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true); // New state for loading
-  const [selectedTab, setSelectedTab] = useState<'flights' | 'rentalCars' | 'privateCars'>('flights'); // Track selected tab
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
+  const [selectedTab, setSelectedTab] = useState<'flights' | 'rentalCars' | 'privateCars'>('flights');
+  const [searchParams, setSearchParams] = useState({
+    from: '',
+    to: '',
+    startDate: '',
+    endDate: '',
+    passengers: '',
+    budget: ''
+  });
 
-  const searchParams = useLocalSearchParams();
-  const { from, to, startDate, endDate, passengers, budget } = searchParams;
+  useEffect(() => {
+    const loadSearchParams = async () => {
+      try {
+        const storedParams = await AsyncStorage.getItem('searchParams');
+        if (storedParams) {
+          setSearchParams(JSON.parse(storedParams));
+        }
+      } catch (error) {
+        console.error('Error loading search params:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadSearchParams();
+  }, []);
+
+  const handleSearchParamsChange = async (field: string, value: string) => {
+    const newParams = { ...searchParams, [field]: value };
+    setSearchParams(newParams);
+    try {
+      await AsyncStorage.setItem('searchParams', JSON.stringify(newParams));
+    } catch (error) {
+      console.error('Error saving search params:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchFlights = async () => {
+      if (!searchParams.from || !searchParams.to) return;
+      
       try {
-        setLoading(true); // Start loading
-        const response = await fetch(
-          `http://localhost:5000/api/searchFlights?originLocationCode=${from}&destinationLocationCode=${to}&departureDate=${startDate}&returnDate=${endDate}&adults=${passengers}&travelBudget=${budget}`
-        );
+        setIsFetching(true);
+        // const response = await fetch(
+        //   `http://localhost:5000/api/searchFlights?originLocationCode=${searchParams.from}&destinationLocationCode=${searchParams.to}&departureDate=${searchParams.startDate}&returnDate=${searchParams.endDate}&adults=${searchParams.passengers}&travelBudget=${searchParams.budget}`
+        // );
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch flights');
-        }
+        // if (!response.ok) {
+        //   throw new Error('Failed to fetch flights');
+        // }
 
-        const data: FlightDetails[] = await response.json();
-        setFlights(data);
+        // const data: FlightDetails[] = await response.json();
+        // setFlights(data);
+
+        // Replace this with API logic above when ready
+        const dummyData: FlightDetails[] = [
+          {
+            price: {
+              total: "450",
+              currency: "USD"
+            },
+            passengers: parseInt(searchParams.passengers) || 1,
+            airline: "Delta Airlines",
+            departureDetails: {
+              totalDuration: "2h 30m",
+              segments: [{
+                from: searchParams.from,
+                to: searchParams.to,
+                departureTime: `${searchParams.startDate} 08:00`,
+                arrivalTime: `${searchParams.startDate} 10:30`,
+                duration: "2h 30m",
+                stops: 0,
+                flightNumber: "DL123",
+                aircraft: "Boeing 737"
+              }]
+            },
+            returnDetails: {
+              totalDuration: "2h 30m",
+              segments: [{
+                from: searchParams.to,
+                to: searchParams.from,
+                departureTime: `${searchParams.endDate} 18:00`,
+                arrivalTime: `${searchParams.endDate} 20:30`,
+                duration: "2h 30m",
+                stops: 0,
+                flightNumber: "DL124",
+                aircraft: "Boeing 737"
+              }]
+            }
+          },
+          {
+            price: {
+              total: "380",
+              currency: "USD"
+            },
+            passengers: parseInt(searchParams.passengers) || 1,
+            airline: "American Airlines",
+            departureDetails: {
+              totalDuration: "3h 15m",
+              segments: [{
+                from: searchParams.from,
+                to: searchParams.to,
+                departureTime: `${searchParams.startDate} 12:00`,
+                arrivalTime: `${searchParams.startDate} 15:15`,
+                duration: "3h 15m",
+                stops: 0,
+                flightNumber: "AA456",
+                aircraft: "Airbus A320"
+              }]
+            },
+            returnDetails: {
+              totalDuration: "3h 15m",
+              segments: [{
+                from: searchParams.to,
+                to: searchParams.from,
+                departureTime: `${searchParams.endDate} 16:00`,
+                arrivalTime: `${searchParams.endDate} 19:15`,
+                duration: "3h 15m",
+                stops: 0,
+                flightNumber: "AA457",
+                aircraft: "Airbus A320"
+              }]
+            }
+          },
+          {
+            price: {
+              total: "520",
+              currency: "USD"
+            },
+            passengers: parseInt(searchParams.passengers) || 1,
+            airline: "United Airlines",
+            departureDetails: {
+              totalDuration: "2h 45m",
+              segments: [{
+                from: searchParams.from,
+                to: searchParams.to,
+                departureTime: `${searchParams.startDate} 15:00`,
+                arrivalTime: `${searchParams.startDate} 17:45`,
+                duration: "2h 45m",
+                stops: 0,
+                flightNumber: "UA789",
+                aircraft: "Boeing 787"
+              }]
+            },
+            returnDetails: {
+              totalDuration: "2h 45m",
+              segments: [{
+                from: searchParams.to,
+                to: searchParams.from,
+                departureTime: `${searchParams.endDate} 20:00`,
+                arrivalTime: `${searchParams.endDate} 22:45`,
+                duration: "2h 45m",
+                stops: 0,
+                flightNumber: "UA790",
+                aircraft: "Boeing 787"
+              }]
+            }
+          }
+        ];
+        setFlights(dummyData);
       } catch (error) {
         console.error(error);
-        alert('There was an error fetching the flight details.');
+        alert("Error fetching flight details.");
       } finally {
-        setLoading(false); // Stop loading
+        setIsFetching(false);
       }
     };
 
     fetchFlights();
-  }, [from, to, startDate, endDate, passengers, budget]);
+  }, [searchParams.from, searchParams.to, searchParams.startDate, searchParams.endDate, searchParams.passengers, searchParams.budget]);
+
+  const { from, to, startDate, endDate, passengers, budget } = searchParams;
+  const hasValidSearch = from && to && from !== 'undefined' && to !== 'undefined';
 
   const handleExpandToggle = (index: number) => {
     setExpandedFlightIndex(expandedFlightIndex === index ? null : index);
@@ -94,7 +239,7 @@ export default function FlightListings() {
 
     router.push({
       pathname: "/hotels",
-      params: { from, to, startDate, endDate, passengers, budget },
+      params: { from: searchParams.from, to: searchParams.to, startDate: searchParams.startDate, endDate: searchParams.endDate, passengers: searchParams.passengers, budget: searchParams.budget },
     });
   };
 
@@ -178,11 +323,20 @@ export default function FlightListings() {
     </View>
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Fetching...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!hasValidSearch) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Please search for a destination to view flights....</Text>
       </View>
     );
   }
@@ -199,7 +353,15 @@ export default function FlightListings() {
     
     <View style={styles.container}>
       {/* Tabs Section */}
-      <TopBar from={from} to={to} startDate={startDate} endDate={endDate} budget={budget} passengers={passengers} />
+      <TopBar 
+        from={searchParams.from} 
+        to={searchParams.to} 
+        startDate={searchParams.startDate} 
+        endDate={searchParams.endDate} 
+        budget={searchParams.budget} 
+        passengers={searchParams.passengers}
+        onChange={handleSearchParamsChange}
+      />
       <View style={styles.tabs}>
         <TouchableOpacity
           style={[styles.tab, selectedTab === 'flights' && styles.activeTab]}
@@ -222,14 +384,12 @@ export default function FlightListings() {
       </View>
 
       {/* Content Section */}
-      {loading && selectedTab === 'flights' && (
+      {isFetching ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#0000ff" />
-          <Text>Loading flights...</Text>
+          <Text style={styles.loadingText}>Fetching flights...</Text>
         </View>
-      )}
-
-      {!loading && selectedTab === 'flights' && (
+      ) : (
         <FlatList
           data={flights}
           renderItem={renderFlightCard}
@@ -285,6 +445,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    display: 'none',
   },
   tab: {
     paddingVertical: 8,

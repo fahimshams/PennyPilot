@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useGlobalSearchParams } from 'expo-router';
 import TopBar from '../../components/TopBarComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -178,6 +178,11 @@ export default function PrivateCars() {
   const { from, to, startDate, endDate, passengers, budget } = searchParams;
   const hasValidSearch = from && to && from !== 'undefined' && to !== 'undefined';
 
+  const handleBookPrivateCar = (car: PrivateCarDetails) => {
+    console.log('Booking private car:', car);
+    // Add navigation or other logic here
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -198,26 +203,23 @@ export default function PrivateCars() {
 
   const renderPrivateCarCard = ({ item }: { item: PrivateCarDetails }) => (
     <View style={styles.carCard}>
-      <View style={styles.cardHeader}>
-        <View>
-          <Text style={styles.carName}>{item.name}</Text>
-          <Text style={styles.carType}>{item.type}</Text>
-        </View>
-        <Text style={styles.price}>{item.price}</Text>
+      <Text style={styles.carName}>{item.name}</Text>
+      <Text style={styles.carDetails}>Type: {item.type}</Text>
+      <Text style={styles.carDetails}>Passengers: {item.passengers}</Text>
+      <Text style={styles.carDetails}>Driver: {item.driver}</Text>
+      <Text style={styles.carDetails}>Rating: {item.rating}★</Text>
+      <Text style={styles.price}>${item.price} {item.currency}</Text>
+      <View style={styles.featuresContainer}>
+        {item.features.map((feature, index) => (
+          <Text key={index} style={styles.feature}>{feature}</Text>
+        ))}
       </View>
-      
-      <View style={styles.driverInfo}>
-        <Text style={styles.driverName}>Driver: {item.driver}</Text>
-        <Text style={styles.rating}>{item.rating}</Text>
-      </View>
-      
-      <View style={styles.details}>
-        <Text style={styles.detailText}>Passengers: {item.passengers}</Text>
-      </View>
-      
-      <View style={styles.buttonContainer}>
-        <Text style={styles.bookButton}>Book Private Car</Text>
-      </View>
+      <TouchableOpacity
+        style={styles.bookButton}
+        onPress={() => handleBookPrivateCar(item)}
+      >
+        <Text style={styles.bookButtonText}>Book Private Car</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -287,55 +289,45 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
     },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 12,
-    },
     carName: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 4,
     },
-    carType: {
+    carDetails: {
         fontSize: 14,
         color: '#666',
     },
     price: {
-        fontSize: 18,
+        fontSize: 24,
         fontWeight: 'bold',
         color: '#4CAF50',
+        marginVertical: 8,
     },
-    driverInfo: {
+    featuresContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         marginBottom: 12,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
     },
-    driverName: {
-        fontSize: 16,
-        color: '#333',
+    feature: {
+        backgroundColor: '#4CAF50',
+        color: 'white',
+        padding: 4,
+        borderRadius: 4,
+        marginRight: 4,
     },
-    rating: {
+    bookButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        overflow: 'hidden',
+        alignSelf: 'center',
+    },
+    bookButtonText: {
+        color: 'white',
         fontSize: 16,
-        color: '#FFB800',
         fontWeight: '600',
-    },
-    details: {
-        marginBottom: 12,
-    },
-    detailText: {
-        fontSize: 14,
-        color: '#666',
-    },
-    buttonContainer: {
-        alignItems: 'center',
-        marginTop: 8,
     },
     loadingContainer: {
         flex: 1,
@@ -347,14 +339,4 @@ const styles = StyleSheet.create({
         marginTop: 10,
         color: '#666',
       },
-    bookButton: {
-        backgroundColor: '#4CAF50',
-        color: 'white',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 8,
-        overflow: 'hidden',
-        fontSize: 16,
-        fontWeight: '600',
-    },
 }); 

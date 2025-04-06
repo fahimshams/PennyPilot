@@ -68,12 +68,37 @@ const HotelListings = () => {
   
   useEffect(() => {
     const fetchHotels = async () => {
-      if (!searchParams.to) return;
+      if (!searchParams.from || !searchParams.to) return;
+
       
       try {
         setIsFetching(true);
-        // Replace this with API logic when ready
-        const dummyData: HotelDetails[] = [
+        
+        // API Integration (commented out)
+        /*
+        const response = await fetch(`http://localhost:5000/api/accommodation?cityCode=${searchParams.to}&adults=${searchParams.passengers}&checkInDate=${searchParams.startDate}&checkOutDate=${searchParams.endDate}&budget=${searchParams.budget}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch hotels');
+        }
+        
+        const data = await response.json();
+        setHotels(data);
+        */
+        
+        // Mock data implementation
+        const mockHotels: HotelDetails[] = [
+          {
+            name: "Grand Hotel",
+            latitude: 40.7128,
+            longitude: -74.0060,
+            checkInDate: searchParams.startDate,
+            checkOutDate: searchParams.endDate,
+            price: "200",
+            currency: "USD",
+            bedType: "Queen",
+            adults: parseInt(searchParams.passengers) || 1
+          },
           {
             name: "Best Western " + searchParams.to,
             latitude: 40.7128,
@@ -141,7 +166,7 @@ const HotelListings = () => {
             adults: parseInt(searchParams.passengers) || 2
           }
         ];
-        setHotels(dummyData);
+        setHotels(mockHotels);
       } catch (error) {
         console.error(error);
         alert("Error fetching hotel details.");
@@ -175,6 +200,7 @@ const HotelListings = () => {
   }
 
   const handleSelectHotel = (hotel: HotelDetails) => {
+    console.log('Selected hotel:', hotel);
     // Navigate to detailed hotel view (if required)
     // router.push({
     //   pathname: "/hotel-details",

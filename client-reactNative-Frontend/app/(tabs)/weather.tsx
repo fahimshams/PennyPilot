@@ -78,28 +78,34 @@ export default function Weather() {
 
     useEffect(() => {
         const fetchWeather = async () => {
-            if (!searchParams.to) return;
+            if (!searchParams.from || !searchParams.to) return;
             
             try {
                 setIsFetching(true);
-                // const response = await fetch('http://localhost:5000/api/chat/weather-activities', {
-                //     method: 'POST',
-                //     headers: {
-                //       'Content-Type': 'application/json',
-                //     },
-                //     body: JSON.stringify({
-                //       location: destination,
-                //       dates: [startDate, endDate],
-                //     }),
-                //   });
-          
-                //   if (!response.ok) {
-                //     throw new Error('Failed to fetch weather data');
-                //   }
-          
-                //   const data = await response.json();
-                // Replace this with API logic when ready
-                const dummyData: WeatherDetails = {
+                
+                // API Integration (commented out)
+                /*
+                const response = await fetch('http://localhost:5000/api/chat/weather-activities', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        location: searchParams.to,
+                        dates: [searchParams.startDate, searchParams.endDate],
+                    }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch weather');
+                }
+                
+                const data = await response.json();
+                setWeather(data.weather);
+                */
+                
+                // Mock data implementation
+                const mockWeather: WeatherDetails = {
                     current: {
                         temp: 72,
                         condition: 'Sunny',
@@ -114,7 +120,7 @@ export default function Weather() {
                         { id: '5', day: 'Fri', temp: 71, condition: 'Partly Cloudy', icon: '⛅' },
                     ],
                 };
-                setWeather(dummyData);
+                setWeather(mockWeather);
             } catch (error) {
                 console.error(error);
                 alert("Error fetching weather details.");

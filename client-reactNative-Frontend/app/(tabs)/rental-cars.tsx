@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useGlobalSearchParams } from 'expo-router';
 import TopBar from '../../components/TopBarComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -139,13 +139,23 @@ export default function RentalCars() {
     const { from, to, startDate, endDate, passengers, budget } = searchParams;
     const hasValidSearch = from && to && from !== 'undefined' && to !== 'undefined';
 
+    const handleSelectCar = (car: RentalCarDetails) => {
+        console.log('Selected car:', car);
+        // Add navigation or other logic here
+    };
+
     const renderCarCard = ({ item }: { item: any }) => (
         <View style={styles.carCard}>
             <Text style={styles.carName}>{item.name}</Text>
             <Text style={styles.carDetails}>Price: {item.price}</Text>
             <Text style={styles.carDetails}>Passengers: {item.passengers}</Text>
             <View style={styles.buttonContainer}>
-                <Text style={styles.selectButton}>Select Car</Text>
+                <TouchableOpacity
+                    style={styles.selectButton}
+                    onPress={() => handleSelectCar(item)}
+                >
+                    <Text style={styles.selectButtonText}>Select Car</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -245,11 +255,13 @@ const styles = StyleSheet.create({
     },
     selectButton: {
         backgroundColor: '#4CAF50',
-        color: 'white',
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 6,
         overflow: 'hidden',
+    },
+    selectButtonText: {
+        color: 'white',
         fontSize: 16,
         fontWeight: '600',
     },

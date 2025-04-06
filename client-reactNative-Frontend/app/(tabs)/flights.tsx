@@ -91,19 +91,21 @@ export default function FlightListings() {
       
       try {
         setIsFetching(true);
-        // const response = await fetch(
-        //   `http://localhost:5000/api/searchFlights?originLocationCode=${searchParams.from}&destinationLocationCode=${searchParams.to}&departureDate=${searchParams.startDate}&returnDate=${searchParams.endDate}&adults=${searchParams.passengers}&travelBudget=${searchParams.budget}`
-        // );
-
-        // if (!response.ok) {
-        //   throw new Error('Failed to fetch flights');
-        // }
-
-        // const data: FlightDetails[] = await response.json();
-        // setFlights(data);
-        // Need to implement flight budget here.
-        // Replace this with API logic above when ready
-        const dummyData: FlightDetails[] = [
+        
+        // API Integration (commented out)
+        /*
+        const response = await fetch(`http://localhost:5000/api/searchFlights?originLocationCode=${searchParams.from}&destinationLocationCode=${searchParams.to}&departureDate=${searchParams.startDate}&returnDate=${searchParams.endDate}&adults=${searchParams.passengers}&travelBudget=${searchParams.budget}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch flights');
+        }
+        
+        const data = await response.json();
+        setFlights(data);
+        */
+        
+        // Mock data implementation
+        const mockFlights: FlightDetails[] = [
           {
             price: {
               total: "450",
@@ -125,7 +127,7 @@ export default function FlightListings() {
               }]
             },
             returnDetails: {
-              totalDuration: "2h 30m",
+              totalDuration: "2h 45m",
               segments: [{
                 from: searchParams.to,
                 to: searchParams.from,
@@ -207,7 +209,7 @@ export default function FlightListings() {
             }
           }
         ];
-        setFlights(dummyData);
+        setFlights(mockFlights);
       } catch (error) {
         console.error(error);
         alert("Error fetching flight details.");

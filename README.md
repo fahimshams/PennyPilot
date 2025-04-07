@@ -77,7 +77,10 @@ client-reactNative-Frontend/
 
 Create a `.env` file in the root directory with the following variables:
 ```
-EXPO_PUBLIC_API_URL=your_api_url
+AMADEUS_CLIENT_ID=
+AMADEUS_CLIENT_SECRET=
+OPENAI_API_KEY=
+OPENWEATHER_API_KEY=
 ```
 
 ## Dependencies
@@ -100,7 +103,3 @@ Key dependencies include:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, email support@pennypilot.com or open an issue in the repository.

@@ -276,11 +276,13 @@ export default function PrivateCars() {
     );
   }
 
+  const hasValidSearch = searchParams?.from && searchParams?.to;
+
   if (!hasValidSearch) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Please search for a destination to view private cars....</Text>
+        <Text style={styles.loadingText}>Please search for a destination to view private cars</Text>
       </View>
     );
   }

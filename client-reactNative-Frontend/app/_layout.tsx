@@ -12,13 +12,13 @@ export default function Layout() {
             headerShown: false,
           }}
         />
-        <Stack.Screen
-          name="travel-plan"
+        {/* <Stack.Screen
+          name="Travel Plan"
           options={{
             title: 'Travel Plan',
             headerShown: true,
           }}
-        />
+        /> */}
       </Stack>
     </TravelSessionProvider>
   );

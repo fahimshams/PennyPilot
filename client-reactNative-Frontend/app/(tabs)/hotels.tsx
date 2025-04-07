@@ -27,6 +27,8 @@ interface HotelDetails {
   adults: number;
 }
 
+const SESSION_STORAGE_KEY = 'travel_form_data';
+
 const HotelListings = () => {
   const router = useRouter();
   const { session, addHotel, updateTravelDates, updateLocations } = useTravelSession();
@@ -41,6 +43,7 @@ const HotelListings = () => {
   const [hotels, setHotels] = useState<HotelDetails[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
+  const [selectedHotels, setSelectedHotels] = useState<HotelDetails[]>([]);
 
   useEffect(() => {
     const loadSearchParams = async () => {
@@ -60,6 +63,23 @@ const HotelListings = () => {
       }
     };
     loadSearchParams();
+  }, []);
+
+  useEffect(() => {
+    const loadSelectedHotels = async () => {
+      try {
+        const sessionData = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+        if (sessionData) {
+          const parsedData = JSON.parse(sessionData);
+          if (parsedData.hotelSelected) {
+            setSelectedHotels(parsedData.hotelSelected);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading selected hotels:', error);
+      }
+    };
+    loadSelectedHotels();
   }, []);
 
   const handleSearchParamsChange = async (field: string, value: string) => {
@@ -212,66 +232,116 @@ const HotelListings = () => {
     );
   }
 
-  const handleSelectHotel = (hotel: HotelDetails) => {
-    const selectedHotel = {
-      id: hotel.name.toLowerCase().replace(/\s+/g, '-'),
-      name: hotel.name,
-      location: to,
-      checkIn: hotel.checkInDate,
-      checkOut: hotel.checkOutDate,
-      price: hotel.price,
-      roomType: hotel.bedType
-    };
+  const handleSelectHotel = async (hotel: HotelDetails) => {
+    try {
+      const isSelected = selectedHotels.some(h => 
+        h.name === hotel.name && 
+        h.price === hotel.price
+      );
 
-    router.push({
-      pathname: "/activities",
-      params: { from: searchParams.from, to: searchParams.to, startDate: searchParams.startDate, endDate: searchParams.endDate, passengers: searchParams.passengers, budget: searchParams.budget },
-    });
-    
-    addHotel(selectedHotel);
-    Alert.alert(
-      'Success',
-      'Hotel added to your travel plan!',
-      [
-        {
-          text: 'Continue to Activities',
-          onPress: () => {
-            router.push('/activities');
-          }
-        },
-        {
-          text: 'View Travel Plan',
-          onPress: () => {
-            router.push('/travel-plan');
-          }
-        }
-      ]
+      let newSelectedHotels: HotelDetails[];
+      if (isSelected) {
+        // Remove hotel from selection
+        newSelectedHotels = selectedHotels.filter(h => 
+          !(h.name === hotel.name && h.price === hotel.price)
+        );
+      } else {
+        // Add hotel to selection
+        newSelectedHotels = [...selectedHotels, hotel];
+      }
+
+      setSelectedHotels(newSelectedHotels);
+
+      // Update session storage
+      const sessionData = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+      const parsedData = sessionData ? JSON.parse(sessionData) : {};
+      
+      if (newSelectedHotels.length > 0) {
+        parsedData.hotelSelected = newSelectedHotels[0]; // Store only the most recently selected hotel
+      } else {
+        delete parsedData.hotelSelected;
+      }
+
+      await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(parsedData));
+
+      // Only show alert if selecting a new hotel
+      if (!isSelected) {
+        Alert.alert(
+          'Success',
+          'Hotel added to your travel plan!',
+          [
+            {
+              text: 'View Travel Plan',
+              onPress: () => {
+                router.push('/travel-plan');
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error handling hotel selection:', error);
+      alert('Error updating hotel selection');
+    }
+  };
+
+  const isHotelSelected = (hotel: HotelDetails) => {
+    return selectedHotels.some(h => 
+      h.name === hotel.name && 
+      h.price === hotel.price
     );
-    console.log('Selected hotel:', hotel);
-    // Navigate to detailed hotel view (if required)
-    // router.push({
-    //   pathname: "/hotel-details",
-    //   params: { ...hotel },
-    // });
   };
 
   const renderHotelCard = ({ item }: { item: HotelDetails }) => (
-    <Pressable style={styles.hotelCard} onPress={() => handleSelectHotel(item)}>
-      <Text style={styles.hotelName}>{item.name}</Text>
-      <Text style={styles.priceText}>
-        {item.currency} {item.price}
-      </Text>
-      <Text>Check-in: {item.checkInDate}</Text>
-      <Text>Check-out: {item.checkOutDate}</Text>
-      <Text>Bed Type: {item.bedType}</Text>
-      <Text>Adults: {item.adults}</Text>
+    <View style={styles.hotelCard}>
+      <View style={styles.hotelHeader}>
+        <Text style={styles.hotelName}>{item.name}</Text>
+        <View style={styles.priceContainer}>
+          <Text style={styles.priceLabel}>Price per night</Text>
+          <Text style={styles.hotelPrice}>
+            {item.currency} {item.price}
+          </Text>
+        </View>
+      </View>
+      
+      <View style={styles.hotelInfo}>
+        <View style={styles.infoRow}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Check-in</Text>
+            <Text style={styles.infoValue}>{item.checkInDate}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Check-out</Text>
+            <Text style={styles.infoValue}>{item.checkOutDate}</Text>
+          </View>
+        </View>
+        <View style={styles.infoRow}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Room Type</Text>
+            <Text style={styles.infoValue}>{item.bedType}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Capacity</Text>
+            <Text style={styles.infoValue}>{item.adults} Adults</Text>
+          </View>
+        </View>
+      </View>
+
       <TouchableOpacity
-        style={styles.selectButton}
+        style={[
+          styles.selectButton,
+          isHotelSelected(item) && styles.selectedButton
+        ]}
         onPress={() => handleSelectHotel(item)}
       >
-        <Text style={styles.selectButtonText}>Select Hotel</Text>
+        <Text style={[
+          styles.selectButtonText,
+          isHotelSelected(item) && styles.selectedButtonText
+        ]}>
+          {isHotelSelected(item) ? 'Selected' : 'Select Hotel'}
+        </Text>
       </TouchableOpacity>
-    </Pressable>
+    </View>
   );
 
   return (
@@ -285,20 +355,24 @@ const HotelListings = () => {
         budget={budget}
         onChange={handleSearchParamsChange}
       />
-      <Text style={styles.header}>
-        Hotels for your trip from {from} to {to}
-      </Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Available Hotels</Text>
+        <Text style={styles.headerSubtitle}>
+          {from} → {to}
+        </Text>
+      </View>
       {isFetching ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-          <Text style={styles.loadingText}>Fetching hotels...</Text>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <Text style={styles.loadingText}>Finding the perfect hotels for you...</Text>
         </View>
       ) : (
         <FlatList
           data={hotels}
           renderItem={renderHotelCard}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item) => item.name}
           contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -308,24 +382,31 @@ const HotelListings = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f8f9fa",
   },
-  header: {
-    fontSize: 20,
+  headerContainer: {
+    backgroundColor: "#ffffff",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
+  },
+  headerTitle: {
+    fontSize: 24,
     fontWeight: "bold",
-    padding: 16,
-    textAlign: "center",
-    backgroundColor: "#4CAF50",
-    color: "white",
+    color: "#2d3436",
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: "#636e72",
   },
   listContainer: {
     padding: 16,
   },
   hotelCard: {
     backgroundColor: "white",
-    borderRadius: 10,
-    width: 820,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: {
@@ -333,56 +414,87 @@ const styles = StyleSheet.create({
       height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  hotelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
   hotelName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 8,
+    color: "#2d3436",
+    flex: 1,
+    marginRight: 16,
   },
-  priceText: {
+  priceContainer: {
+    alignItems: 'flex-end',
+  },
+  priceLabel: {
+    fontSize: 12,
+    color: "#636e72",
+    marginBottom: 4,
+  },
+  hotelPrice: {
+    fontSize: 20,
+    color: "#2ecc71",
+    fontWeight: 'bold',
+  },
+  hotelInfo: {
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  infoItem: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: "#636e72",
+    marginBottom: 4,
+  },
+  infoValue: {
+    fontSize: 14,
+    color: "#2d3436",
+    fontWeight: '500',
+  },
+  selectButton: {
+    backgroundColor: '#4CAF50',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  selectedButton: {
+    backgroundColor: '#95a5a6',
+  },
+  selectButtonText: {
+    color: 'white',
     fontSize: 16,
-    color: "#2E7D32",
-    marginBottom: 8,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+  },
+  selectedButtonText: {
+    color: '#fff',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
   },
   loadingText: {
     fontSize: 16,
-    marginTop: 10,
-  },
-  noHotelsContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  noHotelsText: {
-    fontSize: 16,
-    color: "#666",
-  },
-  selectButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  selectButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    alignSelf: 'flex-end',
+    color: "#636e72",
     marginTop: 12,
-  },
-  messageText: {
-    fontSize: 16,
     textAlign: 'center',
-    padding: 20,
-    color: '#666',
   },
 });
 

@@ -12,7 +12,17 @@ const extractTravelDetails = async (message) => {
             messages: [
                 {
                     role: "system",
-                    content: "You are a travel assistant. Extract travel details from user messages. Return only JSON with the following structure: {from: string, to: string, startDate: string, endDate: string, passengers: number, budget: number}. If any detail is missing, ask the user for it and fill it in the json object."
+                    content: `You are a travel assistant. Extract travel details from user messages. Return only JSON with the following structure: 
+                    {
+                        from: string, 
+                        to: string, 
+                        startDate: string (format: YYYY-MM-DD), 
+                        endDate: string (format: YYYY-MM-DD), 
+                        passengers: string, 
+                        budget: string
+                    }. 
+                    If any detail is missing, ask the user for it and fill it in the json object. 
+                    For dates, if not specified, use today's date for startDate and 7 days later for endDate.`
                 },
                 {
                     role: "user",
@@ -21,8 +31,31 @@ const extractTravelDetails = async (message) => {
             ],
             response_format: { type: "json_object" }
         });
-        console.log(completion.choices[0].message.content);
-        return JSON.parse(completion.choices[0].message.content);
+        const travelDetails = JSON.parse(completion.choices[0].message.content);
+        
+        // Ensure all required fields are present
+        if (!travelDetails.from || !travelDetails.to) {
+            throw new Error('Missing required travel details');
+        }
+
+        // Set default values if not provided
+        if (!travelDetails.startDate) {
+            const today = new Date();
+            travelDetails.startDate = today.toISOString().split('T')[0];
+        }
+        if (!travelDetails.endDate) {
+            const endDate = new Date(travelDetails.startDate);
+            endDate.setDate(endDate.getDate() + 7);
+            travelDetails.endDate = endDate.toISOString().split('T')[0];
+        }
+        if (!travelDetails.passengers) {
+            travelDetails.passengers = "1";
+        }
+        if (!travelDetails.budget) {
+            travelDetails.budget = "1000";
+        }
+
+        return travelDetails;
     } catch (error) {
         console.error('Error extracting travel details:', error);
         throw error;

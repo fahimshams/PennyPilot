@@ -262,6 +262,11 @@ export default function PrivateCars() {
     </View>
   );
 
+  const handleBookPrivateCar = (car: PrivateCarDetails) => {
+    console.log('Booking private car:', car);
+    // Add navigation or other logic here
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -270,6 +275,37 @@ export default function PrivateCars() {
       </View>
     );
   }
+
+  if (!hasValidSearch) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Please search for a destination to view private cars....</Text>
+      </View>
+    );
+  }
+
+  const renderPrivateCarCard = ({ item }: { item: PrivateCarDetails }) => (
+    <View style={styles.carCard}>
+      <Text style={styles.carName}>{item.name}</Text>
+      <Text style={styles.carDetails}>Type: {item.type}</Text>
+      <Text style={styles.carDetails}>Passengers: {item.passengers}</Text>
+      <Text style={styles.carDetails}>Driver: {item.driver}</Text>
+      <Text style={styles.carDetails}>Rating: {item.rating}★</Text>
+      <Text style={styles.price}>${item.price.total}</Text>
+      <View style={styles.featuresContainer}>
+        {(item.features || []).map((feature: string, index: number) => (
+          <Text key={index} style={styles.feature}>{feature}</Text>
+        ))}
+      </View>
+      <TouchableOpacity
+        style={styles.bookButton}
+        onPress={() => handleBookPrivateCar(item)}
+      >
+        <Text style={styles.bookButtonText}>Book Private Car</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -562,4 +598,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+   
+    content: {
+        flex: 1,
+        padding: 16,
+    },
+    headerText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 16,
+        color: '#333',
+    },
+    messageText: {
+        fontSize: 16,
+        textAlign: 'center',
+        padding: 20,
+        color: '#666',
+    },
+    
+    carDetails: {
+        fontSize: 14,
+        color: '#666',
+    },
+   
+    featuresContainer: {
+        flexDirection: 'row',
+        marginBottom: 12,
+    },
+    feature: {
+        backgroundColor: '#4CAF50',
+        color: 'white',
+        padding: 4,
+        borderRadius: 4,
+        marginRight: 4,
+    },
+    bookButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        overflow: 'hidden',
+        alignSelf: 'center',
+    },
+    bookButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+   
 }); 

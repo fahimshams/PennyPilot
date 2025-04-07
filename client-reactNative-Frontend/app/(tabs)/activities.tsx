@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useGlobalSearchParams } from 'expo-router';
 import TopBar from '../../components/TopBarComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -90,25 +90,34 @@ export default function Activities() {
 
     useEffect(() => {
         const fetchActivities = async () => {
-            if (!searchParams.to) return;
+            if (!searchParams.from || !searchParams.to) return;
             
             try {
                 setIsFetching(true);
-
-                // const fetchActivities = async () => {
-                //   try {
-                //     const response = await fetch(
-                //       `http://localhost:5000/api/activities?latitude=40.69159&longitude=-73.98466`
-                //     );
-            
-                //     if (!response.ok) {
-                //       throw new Error('Failed to fetch activities');
-                //     }
-            
-                //     const data: Activity[] = await response.json();
                 
-                // Replace this with API logic when ready
-                const dummyData: ActivityDetails[] = [
+                // API Integration (commented out)
+                /*
+                const response = await fetch('http://localhost:5000/api/chat/weather-activities', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        location: searchParams.to,
+                        dates: [searchParams.startDate, searchParams.endDate],
+                    }),
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch activities');
+                }
+                
+                const data = await response.json();
+                setActivities(data.activities);
+                */
+                
+                // Mock data implementation
+                const mockActivities: ActivityDetails[] = [
                     {
                         name: "City Walking Tour " + searchParams.to,
                         price: "50",
@@ -164,7 +173,7 @@ export default function Activities() {
                         category: "Food & Drink"
                     }
                 ];
-                setActivities(dummyData);
+                setActivities(mockActivities);
             } catch (error) {
                 console.error(error);
                 alert("Error fetching activity details.");
@@ -178,6 +187,11 @@ export default function Activities() {
 
     const { from, to, startDate, endDate, passengers, budget } = searchParams;
     const hasValidSearch = from && to && from !== 'undefined' && to !== 'undefined';
+
+    const handleBookActivity = (activity: any) => {
+        console.log('Booking activity:', activity);
+        // Add navigation or other logic here
+    };
 
     if (isLoading) {
         return (
@@ -197,17 +211,22 @@ export default function Activities() {
         );
     }
 
-    const renderActivityCard = ({ item }: { item: any }) => (
+    const renderActivityCard = ({ item }: { item: ActivityDetails }) => (
         <View style={styles.activityCard}>
             <Text style={styles.activityName}>{item.name}</Text>
-            <Text style={styles.rating}>{item.rating}</Text>
+            <Text style={styles.rating}>{item.rating}★</Text>
             <Text style={styles.description}>{item.description}</Text>
             <View style={styles.detailsRow}>
                 <Text style={styles.details}>Duration: {item.duration}</Text>
-                <Text style={styles.price}>{item.price}</Text>
+                <Text style={styles.price}>${item.price} {item.currency}</Text>
             </View>
             <View style={styles.buttonContainer}>
-                <Text style={styles.bookButton}>Book Activity</Text>
+                <TouchableOpacity
+                    style={styles.bookButton}
+                    onPress={() => handleBookActivity(item)}
+                >
+                    <Text style={styles.bookButtonText}>Book Activity</Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -299,7 +318,7 @@ const styles = StyleSheet.create({
         color: '#666',
     },
     price: {
-        fontSize: 18,
+        fontSize: 24,
         fontWeight: 'bold',
         color: '#4CAF50',
     },
@@ -308,11 +327,13 @@ const styles = StyleSheet.create({
     },
     bookButton: {
         backgroundColor: '#4CAF50',
-        color: 'white',
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 6,
         overflow: 'hidden',
+    },
+    bookButtonText: {
+        color: 'white',
         fontSize: 16,
         fontWeight: '600',
     },

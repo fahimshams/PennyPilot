@@ -5,7 +5,26 @@ exports.processMessage = async (req, res) => {
     try {
         const { message } = req.body;
         const travelDetails = await openaiService.extractTravelDetails(message);
-        res.json({ travelDetails });
+        
+        // Get initial data for the app's pages
+        const weatherData = await weatherService.getWeatherForecast(
+            travelDetails.to,
+            [travelDetails.startDate, travelDetails.endDate]
+        );
+        
+        const activitiesResponse = await openaiService.getActivitiesRecommendations(
+            travelDetails.to,
+            weatherData.forecasts.map(f => f.description).join(', '),
+            weatherData.averageTemperature
+        );
+
+        res.json({
+            travelDetails,
+            initialData: {
+                weather: weatherData,
+                activities: activitiesResponse.activities
+            }
+        });
     } catch (error) {
         console.error('Error processing message:', error);
         res.status(500).json({ error: error.message });

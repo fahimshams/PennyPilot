@@ -12,6 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Message {
   id: string;
@@ -92,8 +93,9 @@ export const ChatBox = () => {
         throw new Error('Failed to process message');
       }
 
-      const { travelDetails } = await response.json();
-      return travelDetails;
+      const data = await response.json();
+      console.log('API Response:', data); // Add logging to debug
+      return data;
     } catch (error) {
       console.error('Error processing message:', error);
       return null;
@@ -149,27 +151,91 @@ ${activities.map(activity => `• ${activity}`).join('\n')}
     setInputText('');
 
     try {
-      // Process the message
-      const travelDetails = await processMessage(inputText);
-      
-      if (travelDetails && travelDetails.to) {
-        // Get weather and activities
-        const weatherActivities = await getWeatherAndActivities(
-          travelDetails.to,
-          [travelDetails.startDate, travelDetails.endDate]
-        );
+      const response = await processMessage(inputText);
+      // console.log('API Response2:', response);
 
-        // Add AI response with travel details and recommendations
-        const formattedResponse = formatWeatherMessage(
-          weatherActivities.weather, 
-          weatherActivities.activities
-        );
+      if (response && response.travelDetails) {
+        // Store travel details in AsyncStorage
+        await AsyncStorage.setItem('searchParams', JSON.stringify(response.travelDetails));
 
+        // Construct the response message
+        let messageText = `I found travel details for your trip from ${response.travelDetails.from} to ${response.travelDetails.to}.\n`;
+        messageText += `Dates: ${response.travelDetails.startDate} to ${response.travelDetails.endDate}\n`;
+        messageText += `Passengers: ${response.travelDetails.passengers || '1'}\n`;
+        if (response.travelDetails.budget && response.travelDetails.budget !== 'Not specified') {
+          messageText += `Budget: ${response.travelDetails.budget}\n`;
+        }
+        messageText += '\n';
+
+         // Add weather forecast if available
+        //  if (response.initialData.weather?.forecasts?.length > 0) {
+        //   messageText += `Weather Forecast for ${response.travelDetails.to}:\n`;
+        //   response.initialData.weather.forecasts.forEach((forecast: WeatherForecast) => {
+        //     const date = new Date(forecast.date).toLocaleDateString('en-US', {
+        //       weekday: 'short',
+        //       month: 'short',
+        //       day: 'numeric'
+        //     });
+        //     messageText += `${date}: ${forecast.description}, High: ${forecast.highTemp}°C, Low: ${forecast.lowTemp}°C\n`;
+        //   });
+          
+        //   if (response.initialData.weather.averageTemperature) {
+        //     messageText += `\nAverage Temperature: ${response.initialData.weather.averageTemperature}°C\n`;
+        //   }
+          
+        //   if (response.initialData.weather.clothingRecommendations) {
+        //     messageText += `\nPacking Recommendations:\n${response.initialData.weather.clothingRecommendations}\n`;
+        //   }
+        //   messageText += '\n';
+        // }
+
+        // Add activities
+        if (response.initialData.activities?.length > 0) {
+          messageText += `Here are some activities you might enjoy in ${response.travelDetails.to}:\n`;
+          messageText += response.initialData.activities
+            .map((activity: string, index: number) => `${index + 1}. ${activity}`)
+            .join('\n');
+        }
+
+        // Add AI response
+        const aiMessage: Message = {
+          id: Date.now().toString(),
+          text: messageText,
+          sender: 'ai',
+          timestamp: new Date(),
+          weatherForecasts: response.initialData?.weather?.forecasts,
+          recommendations: response.initialData?.weather?.clothingRecommendations
+        };
+        setMessages(prev => [...prev, aiMessage]);
+
+        // If we have weather data, make a separate call to get detailed weather and activities
+        if (response.travelDetails.to && response.travelDetails.startDate && response.travelDetails.endDate) {
+          try {
+            const weatherResponse = await getWeatherAndActivities(
+              response.travelDetails.to,
+              [response.travelDetails.startDate, response.travelDetails.endDate]
+            );
+            
+            if (weatherResponse && weatherResponse.weather) {
+              const weatherMessage: Message = {
+                id: Date.now().toString(),
+                text: `Here's the weather forecast for ${response.travelDetails.to}:`,
+                sender: 'ai',
+                timestamp: new Date(),
+                weatherForecasts: weatherResponse.weather.forecasts,
+                recommendations: weatherResponse.weather.clothingRecommendations
+              };
+              setMessages(prev => [...prev, weatherMessage]);
+            }
+          } catch (error) {
+            console.error('Error fetching weather details:', error);
+          }
+        }
+      } else {
+        // Add error message if no response
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
-          text: formattedResponse.text,
-          weatherForecasts: weatherActivities.weather.forecasts,
-          recommendations: formattedResponse.recommendations,
+          text: "I'm sorry, I couldn't process your request. Please try again.",
           sender: 'ai',
           timestamp: new Date(),
         }]);
@@ -185,7 +251,7 @@ ${activities.map(activity => `• ${activity}`).join('\n')}
     }
   };
 
-  const handleKeyPress = ({ nativeEvent }: { nativeEvent: { key: string } }) => {
+  const handleKeyPress = ({ nativeEvent }: { nativeEvent: { key: string; shiftKey?: boolean } }) => {
     if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) {
       handleSend();
     }

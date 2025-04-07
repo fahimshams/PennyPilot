@@ -19,7 +19,7 @@ export const TravelForm = () => {
   const [startDateInput, setStartDateInput] = useState('');
   const [endDateInput, setEndDateInput] = useState('');
   const [slogan, setSlogan] = useState('');
-  const fullSlogan = 'Flly Smart Travel Smart! Where Every Penny Plays Its Part!';
+  const fullSlogan = 'FFly Smart Travel Smart! Where Every Penny Plays Its Part!';
   const typingSpeed = 90; // Speed in milliseconds between each character
   const [errors, setErrors] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);

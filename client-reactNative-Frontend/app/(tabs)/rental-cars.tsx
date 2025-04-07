@@ -5,22 +5,68 @@ import TopBar from '../../components/TopBarComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface RentalCarDetails {
-  name: string;
-  price: string;
-  currency: string;
+  // Basic Information
+  id: string;
+  provider: string;
+  model: string;
   type: string;
-  passengers: number;
-  transmission: string;
-  features: string[];
+  
+  // Pricing Information
+  price: {
+    total: string;
+    base: string;
+    currency: string;
+    fees: Array<{
+      amount: string;
+      type: string;
+    }>;
+    grandTotal: string;
+  };
+  
+  // Vehicle Details
+  vehicle: {
+    passengerCapacity: number;
+    baggageCapacity: number;
+    features: string[];
+    fuelPolicy: string;
+    transmission: string;
+  };
+  
+  // Location Information
+  pickupLocation: {
+    iataCode: string;
+    name: string;
+    address: string;
+    terminal?: string;
+    at: string;
+  };
+  
+  dropoffLocation: {
+    iataCode: string;
+    name: string;
+    address: string;
+    terminal?: string;
+    at: string;
+  };
+  
+  // Additional Details
+  mileage: {
+    allowed: string;
+    extraMileCost: string;
+  };
+  
+  insuranceOptions: Array<{
+    type: string;
+    price: string;
+    coverage: string;
+  }>;
+  
+  // Booking Information
+  instantBookingAvailable: boolean;
+  lastBookingDate: string;
 }
 
 // Mock data
-const rentalCarsData = [
-    { id: '1', name: 'Toyota Corolla', price: '$50/day', passengers: 5 },
-    { id: '2', name: 'Honda Accord', price: '$60/day', passengers: 5 },
-    { id: '3', name: 'Nissan Altima', price: '$55/day', passengers: 5 },
-    { id: '4', name: 'Ford Fusion', price: '$52/day', passengers: 5 },
-];
 
 export default function RentalCars() {
     const [searchParams, setSearchParams] = useState({
@@ -67,64 +113,17 @@ export default function RentalCars() {
             
             try {
                 setIsFetching(true);
-                // Replace this with API logic when ready
-                const dummyData: RentalCarDetails[] = [
-                    {
-                        name: "Toyota Corolla",
-                        price: "50",
-                        currency: "USD",
-                        type: "Economy",
-                        passengers: 5,
-                        transmission: "Automatic",
-                        features: ["AC", "Bluetooth", "GPS"]
-                    },
-                    {
-                        name: "Honda Accord",
-                        price: "60",
-                        currency: "USD",
-                        type: "Midsize",
-                        passengers: 5,
-                        transmission: "Automatic",
-                        features: ["AC", "Bluetooth", "GPS", "4WD"]
-                    },
-                    {
-                        name: "Luxury Sedan",
-                        price: "120",
-                        currency: "USD",
-                        type: "Luxury",
-                        passengers: 4,
-                        transmission: "Automatic",
-                        features: ["AC", "Bluetooth", "GPS", "Leather Seats", "Sunroof"]
-                    },
-                    {
-                        name: "Compact Car",
-                        price: "40",
-                        currency: "USD",
-                        type: "Compact",
-                        passengers: 4,
-                        transmission: "Automatic",
-                        features: ["AC", "Bluetooth"]
-                    },
-                    {
-                        name: "Minivan",
-                        price: "90",
-                        currency: "USD",
-                        type: "Minivan",
-                        passengers: 7,
-                        transmission: "Automatic",
-                        features: ["AC", "Bluetooth", "GPS", "Sliding Doors"]
-                    },
-                    {
-                        name: "Sports Car",
-                        price: "150",
-                        currency: "USD",
-                        type: "Sports",
-                        passengers: 2,
-                        transmission: "Manual",
-                        features: ["AC", "Bluetooth", "GPS", "Convertible"]
-                    }
-                ];
-                setRentalCars(dummyData);
+               
+                const response = await fetch(
+                    `http://localhost:5000/api/searchCarRentals?pickupLocationCode=${searchParams.from}&dropoffLocationCode=${searchParams.to}&pickupDateTime=${searchParams.startDate}&dropoffDateTime=${searchParams.endDate}&adults=${searchParams.passengers}&travelBudget=${searchParams.budget}`
+                  );
+
+                  if (!response.ok) {
+                    throw new Error('Failed to fetch flights');
+                  }
+
+                  const data: RentalCarDetails[] = await response.json();
+                setRentalCars(data);
             } catch (error) {
                 console.error(error);
                 alert("Error fetching rental car details.");
@@ -139,24 +138,79 @@ export default function RentalCars() {
     const { from, to, startDate, endDate, passengers, budget } = searchParams;
     const hasValidSearch = from && to && from !== 'undefined' && to !== 'undefined';
 
-    const handleSelectCar = (car: RentalCarDetails) => {
-        console.log('Selected car:', car);
-        // Add navigation or other logic here
-    };
-
-    const renderCarCard = ({ item }: { item: any }) => (
+    const renderCarCard = ({ item }: { item: RentalCarDetails }) => (
         <View style={styles.carCard}>
-            <Text style={styles.carName}>{item.name}</Text>
-            <Text style={styles.carDetails}>Price: {item.price}</Text>
-            <Text style={styles.carDetails}>Passengers: {item.passengers}</Text>
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                    style={styles.selectButton}
-                    onPress={() => handleSelectCar(item)}
-                >
-                    <Text style={styles.selectButtonText}>Select Car</Text>
-                </TouchableOpacity>
+            <View style={styles.cardHeader}>
+                <View style={styles.carInfo}>
+                    <Text style={styles.carName}>{item.model}</Text>
+                    <Text style={styles.carType}>{item.type}</Text>
+                    <View style={styles.providerBadge}>
+                        <Text style={styles.providerText}>{item.provider}</Text>
+                    </View>
+                </View>
+                <View style={styles.priceContainer}>
+                    <Text style={styles.priceLabel}>Total Price</Text>
+                    <Text style={styles.price}>{item.price.currency} {item.price.total}</Text>
+                </View>
             </View>
+            
+            <View style={styles.availabilityBadge}>
+                <Text style={styles.availabilityText}>
+                    {item.instantBookingAvailable ? '✓ Instant Booking Available' : '⏳ Booking Required'}
+                </Text>
+            </View>
+
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>Vehicle Details</Text>
+                <View style={styles.detailsGrid}>
+                    <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>👥</Text>
+                        <Text style={styles.detailValue}>{item.vehicle.passengerCapacity} Passengers</Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>🧳</Text>
+                        <Text style={styles.detailValue}>{item.vehicle.baggageCapacity} Bags</Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>⚙️</Text>
+                        <Text style={styles.detailValue}>{item.vehicle.transmission}</Text>
+                    </View>
+                    <View style={styles.detailItem}>
+                        <Text style={styles.detailIcon}>⛽</Text>
+                        <Text style={styles.detailValue}>{item.vehicle.fuelPolicy}</Text>
+                    </View>
+                </View>
+            </View>
+
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>Features</Text>
+                <View style={styles.featuresGrid}>
+                    {item.vehicle.features.map((feature, index) => (
+                        <View key={index} style={styles.featureItem}>
+                            <Text style={styles.featureIcon}>•</Text>
+                            <Text style={styles.featureText}>{feature}</Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
+
+            <View style={styles.sectionContainer}>
+                <Text style={styles.sectionTitle}>Pickup Location</Text>
+                <View style={styles.locationInfo}>
+                    <Text style={styles.locationName}>{item.pickupLocation.name}</Text>
+                    <Text style={styles.locationAddress}>{item.pickupLocation.address}</Text>
+                    {item.pickupLocation.terminal && (
+                        <Text style={styles.locationTerminal}>Terminal: {item.pickupLocation.terminal}</Text>
+                    )}
+                    <Text style={styles.locationTime}>
+                        {new Date(item.pickupLocation.at).toLocaleString()}
+                    </Text>
+                </View>
+            </View>
+
+            <TouchableOpacity style={styles.selectButton}>
+                <Text style={styles.selectButtonText}>Select Car</Text>
+            </TouchableOpacity>
         </View>
     );
 
@@ -226,39 +280,158 @@ const styles = StyleSheet.create({
     },
     carCard: {
         backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 16,
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
             height: 2,
         },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: 16,
+    },
+    carInfo: {
+        flex: 1,
     },
     carName: {
-        fontSize: 18,
+        fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 8,
-        color: '#333',
-    },
-    carDetails: {
-        fontSize: 16,
-        color: '#666',
+        color: '#2c3e50',
         marginBottom: 4,
     },
-    buttonContainer: {
-        marginTop: 12,
+    carType: {
+        fontSize: 16,
+        color: '#7f8c8d',
+        marginBottom: 8,
+    },
+    providerBadge: {
+        backgroundColor: '#e8f5e9',
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 12,
+        alignSelf: 'flex-start',
+    },
+    providerText: {
+        fontSize: 14,
+        color: '#2e7d32',
+        fontWeight: '500',
+    },
+    priceContainer: {
+        alignItems: 'flex-end',
+    },
+    priceLabel: {
+        fontSize: 14,
+        color: '#7f8c8d',
+        marginBottom: 4,
+    },
+    price: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#2e7d32',
+    },
+    availabilityBadge: {
+        backgroundColor: '#e3f2fd',
+        padding: 8,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
+    availabilityText: {
+        fontSize: 14,
+        color: '#1976d2',
+        textAlign: 'center',
+        fontWeight: '500',
+    },
+    sectionContainer: {
+        marginBottom: 20,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#2c3e50',
+        marginBottom: 12,
+    },
+    detailsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+    },
+    detailItem: {
+        flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+        padding: 8,
+        borderRadius: 8,
+        minWidth: '45%',
+    },
+    detailIcon: {
+        fontSize: 16,
+        marginRight: 8,
+    },
+    detailValue: {
+        fontSize: 14,
+        color: '#2c3e50',
+    },
+    featuresGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    featureItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+        padding: 8,
+        borderRadius: 8,
+        minWidth: '45%',
+    },
+    featureIcon: {
+        fontSize: 16,
+        color: '#2e7d32',
+        marginRight: 8,
+    },
+    featureText: {
+        fontSize: 14,
+        color: '#2c3e50',
+    },
+    locationInfo: {
+        backgroundColor: '#f8f9fa',
+        padding: 12,
+        borderRadius: 8,
+    },
+    locationName: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#2c3e50',
+        marginBottom: 4,
+    },
+    locationAddress: {
+        fontSize: 14,
+        color: '#7f8c8d',
+        marginBottom: 4,
+    },
+    locationTerminal: {
+        fontSize: 14,
+        color: '#7f8c8d',
+        marginBottom: 4,
+    },
+    locationTime: {
+        fontSize: 14,
+        color: '#7f8c8d',
     },
     selectButton: {
-        backgroundColor: '#4CAF50',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 6,
-        overflow: 'hidden',
+        backgroundColor: '#2e7d32',
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 8,
     },
     selectButtonText: {
         color: 'white',
@@ -269,12 +442,12 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-      },
-      loadingText: {
+    },
+    loadingText: {
         fontSize: 16,
         marginTop: 10,
-        color: '#666',
-      },
+        color: '#7f8c8d',
+    },
     messageText: {
         fontSize: 16,
         textAlign: 'center',

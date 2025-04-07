@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import Autocomplete from 'react-native-autocomplete-input';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const FORM_STORAGE_KEY = 'travel_form_data';
+
 export const TravelForm = () => {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -23,6 +25,61 @@ export const TravelForm = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const isWeb = Platform.OS === 'web';
+
+  // Load saved form data when component mounts
+  useEffect(() => {
+    const loadSavedFormData = async () => {
+      try {
+        const savedData = await AsyncStorage.getItem(FORM_STORAGE_KEY);
+        if (savedData) {
+          const parsedData = JSON.parse(savedData);
+          if (parsedData.formData) {
+            setFrom(parsedData.formData.from || '');
+            setTo(parsedData.formData.to || '');
+            setStartDate(parsedData.formData.startDate ? new Date(parsedData.formData.startDate) : new Date());
+            setEndDate(parsedData.formData.endDate ? new Date(parsedData.formData.endDate) : new Date());
+            setPassengers(parsedData.formData.passengers || '');
+            setBudget(parsedData.formData.budget || '');
+            setStartDateInput(parsedData.formData.startDateInput || '');
+            setEndDateInput(parsedData.formData.endDateInput || '');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved form data:', error);
+      }
+    };
+
+    loadSavedFormData();
+  }, []);
+
+  // Save form data whenever any field changes
+  useEffect(() => {
+    const saveFormData = async () => {
+      try {
+        const formData = {
+          from,
+          to,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          passengers,
+          budget,
+          startDateInput,
+          endDateInput
+        };
+
+        const sessionData = {
+          formData,
+          lastUpdated: new Date().toISOString()
+        };
+
+        await AsyncStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(sessionData));
+      } catch (error) {
+        console.error('Error saving form data:', error);
+      }
+    };
+
+    saveFormData();
+  }, [from, to, startDate, endDate, passengers, budget, startDateInput, endDateInput]);
 
   useEffect(() => {
     let index = 0;
@@ -110,6 +167,23 @@ export const TravelForm = () => {
     try {
       // Store the search parameters in AsyncStorage for cross-tab access
       await AsyncStorage.setItem('searchParams', JSON.stringify(searchParams));
+      
+      // Display the session data
+      // const sessionData = await AsyncStorage.getItem(FORM_STORAGE_KEY);
+      // if (sessionData) {
+      //   const parsedData = JSON.parse(sessionData);
+      //   if (parsedData.formData) {
+      //     alert('Session Data:\n' + 
+      //       `From: ${parsedData.formData.from}\n` +
+      //       `To: ${parsedData.formData.to}\n` +
+      //       `Start Date: ${parsedData.formData.startDateInput}\n` +
+      //       `End Date: ${parsedData.formData.endDateInput}\n` +
+      //       `Passengers: ${parsedData.formData.passengers}\n` +
+      //       `Budget: ${parsedData.formData.budget}\n` +
+      //       `Last Updated: ${parsedData.lastUpdated}`
+      //     );
+      //   }
+      // }
 
       // Navigate to the tabs layout with the search parameters
       router.push({
@@ -213,7 +287,7 @@ export const TravelForm = () => {
         <View style={styles.boardingPass}>
           {/* Input Fields */}
           <View style={styles.row}>
-            <View style={styles.inputWrapper}>
+      <View style={styles.inputWrapper}>
               <Text style={styles.label}>From</Text>
               <TextInput
                 style={styles.input}

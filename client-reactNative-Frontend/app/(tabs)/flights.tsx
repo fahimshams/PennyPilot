@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, Button, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 import TopBar from '../../components/TopBarComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -44,12 +44,15 @@ const privateCarsData = [
   { id: '2', name: 'Mercedes-Benz S-Class', price: '$300/day', passengers: 4 },
 ];
 
+const SESSION_STORAGE_KEY = 'travel_form_data';
+
 export default function FlightListings() {
   const [flights, setFlights] = useState<FlightDetails[]>([]);
   const [expandedFlightIndex, setExpandedFlightIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'flights' | 'rentalCars' | 'privateCars'>('flights');
+  const [selectedFlights, setSelectedFlights] = useState<FlightDetails[]>([]);
   const [searchParams, setSearchParams] = useState({
     from: '',
     to: '',
@@ -58,6 +61,24 @@ export default function FlightListings() {
     passengers: '',
     budget: ''
   });
+
+  // Load selected flights from session storage
+  useEffect(() => {
+    const loadSelectedFlights = async () => {
+      try {
+        const sessionData = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+        if (sessionData) {
+          const parsedData = JSON.parse(sessionData);
+          if (parsedData.flightSelected) {
+            setSelectedFlights(parsedData.flightSelected);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading selected flights:', error);
+      }
+    };
+    loadSelectedFlights();
+  }, []);
 
   useEffect(() => {
     const loadSearchParams = async () => {
@@ -91,125 +112,123 @@ export default function FlightListings() {
       
       try {
         setIsFetching(true);
-        
-        // API Integration (commented out)
-        /*
-        const response = await fetch(`http://localhost:5000/api/searchFlights?originLocationCode=${searchParams.from}&destinationLocationCode=${searchParams.to}&departureDate=${searchParams.startDate}&returnDate=${searchParams.endDate}&adults=${searchParams.passengers}&travelBudget=${searchParams.budget}`);
-        
+        const response = await fetch(
+          `http://localhost:5000/api/searchFlights?originLocationCode=${searchParams.from}&destinationLocationCode=${searchParams.to}&departureDate=${searchParams.startDate}&returnDate=${searchParams.endDate}&adults=${searchParams.passengers}&travelBudget=${searchParams.budget}`
+        );
+
         if (!response.ok) {
           throw new Error('Failed to fetch flights');
         }
-        
-        const data = await response.json();
+
+        const data: FlightDetails[] = await response.json();
         setFlights(data);
-        */
-        
-        // Mock data implementation
-        const mockFlights: FlightDetails[] = [
-          {
-            price: {
-              total: "450",
-              currency: "USD"
-            },
-            passengers: parseInt(searchParams.passengers) || 1,
-            airline: "Delta Airlines",
-            departureDetails: {
-              totalDuration: "2h 30m",
-              segments: [{
-                from: searchParams.from,
-                to: searchParams.to,
-                departureTime: `${searchParams.startDate} 08:00`,
-                arrivalTime: `${searchParams.startDate} 10:30`,
-                duration: "2h 30m",
-                stops: 0,
-                flightNumber: "DL123",
-                aircraft: "Boeing 737"
-              }]
-            },
-            returnDetails: {
-              totalDuration: "2h 45m",
-              segments: [{
-                from: searchParams.to,
-                to: searchParams.from,
-                departureTime: `${searchParams.endDate} 18:00`,
-                arrivalTime: `${searchParams.endDate} 20:30`,
-                duration: "2h 30m",
-                stops: 0,
-                flightNumber: "DL124",
-                aircraft: "Boeing 737"
-              }]
-            }
-          },
-          {
-            price: {
-              total: "380",
-              currency: "USD"
-            },
-            passengers: parseInt(searchParams.passengers) || 1,
-            airline: "American Airlines",
-            departureDetails: {
-              totalDuration: "3h 15m",
-              segments: [{
-                from: searchParams.from,
-                to: searchParams.to,
-                departureTime: `${searchParams.startDate} 12:00`,
-                arrivalTime: `${searchParams.startDate} 15:15`,
-                duration: "3h 15m",
-                stops: 0,
-                flightNumber: "AA456",
-                aircraft: "Airbus A320"
-              }]
-            },
-            returnDetails: {
-              totalDuration: "3h 15m",
-              segments: [{
-                from: searchParams.to,
-                to: searchParams.from,
-                departureTime: `${searchParams.endDate} 16:00`,
-                arrivalTime: `${searchParams.endDate} 19:15`,
-                duration: "3h 15m",
-                stops: 0,
-                flightNumber: "AA457",
-                aircraft: "Airbus A320"
-              }]
-            }
-          },
-          {
-            price: {
-              total: "520",
-              currency: "USD"
-            },
-            passengers: parseInt(searchParams.passengers) || 1,
-            airline: "United Airlines",
-            departureDetails: {
-              totalDuration: "2h 45m",
-              segments: [{
-                from: searchParams.from,
-                to: searchParams.to,
-                departureTime: `${searchParams.startDate} 15:00`,
-                arrivalTime: `${searchParams.startDate} 17:45`,
-                duration: "2h 45m",
-                stops: 0,
-                flightNumber: "UA789",
-                aircraft: "Boeing 787"
-              }]
-            },
-            returnDetails: {
-              totalDuration: "2h 45m",
-              segments: [{
-                from: searchParams.to,
-                to: searchParams.from,
-                departureTime: `${searchParams.endDate} 20:00`,
-                arrivalTime: `${searchParams.endDate} 22:45`,
-                duration: "2h 45m",
-                stops: 0,
-                flightNumber: "UA790",
-                aircraft: "Boeing 787"
-              }]
-            }
-          }
-        ];
-        setFlights(mockFlights);
+        // Need to implement flight budget here.
+        // Replace this with API logic above when ready
+        // const dummyData: FlightDetails[] = [
+        //   {
+        //     price: {
+        //       total: "450",
+        //       currency: "USD"
+        //     },
+        //     passengers: parseInt(searchParams.passengers) || 1,
+        //     airline: "Delta Airlines",
+        //     departureDetails: {
+        //       totalDuration: "2h 30m",
+        //       segments: [{
+        //         from: searchParams.from,
+        //         to: searchParams.to,
+        //         departureTime: `${searchParams.startDate} 08:00`,
+        //         arrivalTime: `${searchParams.startDate} 10:30`,
+        //         duration: "2h 30m",
+        //         stops: 0,
+        //         flightNumber: "DL123",
+        //         aircraft: "Boeing 737"
+        //       }]
+        //     },
+        //     returnDetails: {
+        //       totalDuration: "2h 30m",
+        //       segments: [{
+        //         from: searchParams.to,
+        //         to: searchParams.from,
+        //         departureTime: `${searchParams.endDate} 18:00`,
+        //         arrivalTime: `${searchParams.endDate} 20:30`,
+        //         duration: "2h 30m",
+        //         stops: 0,
+        //         flightNumber: "DL124",
+        //         aircraft: "Boeing 737"
+        //       }]
+        //     }
+        //   },
+        //   {
+        //     price: {
+        //       total: "380",
+        //       currency: "USD"
+        //     },
+        //     passengers: parseInt(searchParams.passengers) || 1,
+        //     airline: "American Airlines",
+        //     departureDetails: {
+        //       totalDuration: "3h 15m",
+        //       segments: [{
+        //         from: searchParams.from,
+        //         to: searchParams.to,
+        //         departureTime: `${searchParams.startDate} 12:00`,
+        //         arrivalTime: `${searchParams.startDate} 15:15`,
+        //         duration: "3h 15m",
+        //         stops: 0,
+        //         flightNumber: "AA456",
+        //         aircraft: "Airbus A320"
+        //       }]
+        //     },
+        //     returnDetails: {
+        //       totalDuration: "3h 15m",
+        //       segments: [{
+        //         from: searchParams.to,
+        //         to: searchParams.from,
+        //         departureTime: `${searchParams.endDate} 16:00`,
+        //         arrivalTime: `${searchParams.endDate} 19:15`,
+        //         duration: "3h 15m",
+        //         stops: 0,
+        //         flightNumber: "AA457",
+        //         aircraft: "Airbus A320"
+        //       }]
+        //     }
+        //   },
+        //   {
+        //     price: {
+        //       total: "520",
+        //       currency: "USD"
+        //     },
+        //     passengers: parseInt(searchParams.passengers) || 1,
+        //     airline: "United Airlines",
+        //     departureDetails: {
+        //       totalDuration: "2h 45m",
+        //       segments: [{
+        //         from: searchParams.from,
+        //         to: searchParams.to,
+        //         departureTime: `${searchParams.startDate} 15:00`,
+        //         arrivalTime: `${searchParams.startDate} 17:45`,
+        //         duration: "2h 45m",
+        //         stops: 0,
+        //         flightNumber: "UA789",
+        //         aircraft: "Boeing 787"
+        //       }]
+        //     },
+        //     returnDetails: {
+        //       totalDuration: "2h 45m",
+        //       segments: [{
+        //         from: searchParams.to,
+        //         to: searchParams.from,
+        //         departureTime: `${searchParams.endDate} 20:00`,
+        //         arrivalTime: `${searchParams.endDate} 22:45`,
+        //         duration: "2h 45m",
+        //         stops: 0,
+        //         flightNumber: "UA790",
+        //         aircraft: "Boeing 787"
+        //       }]
+        //     }
+        //   }
+        // ];
+        // setFlights(dummyData);
       } catch (error) {
         console.error(error);
         alert("Error fetching flight details.");
@@ -236,13 +255,65 @@ export default function FlightListings() {
     // }
   };
 
-  const handleSelectFlight = (flight: FlightDetails) => {
-    console.log(flight);
+  const handleSelectFlight = async (flight: FlightDetails) => {
+    try {
+      const isSelected = selectedFlights.some(f => 
+        f.airline === flight.airline && 
+        f.departureDetails.segments[0].flightNumber === flight.departureDetails.segments[0].flightNumber
+      );
 
-    router.push({
-      pathname: "/hotels",
-      params: { from: searchParams.from, to: searchParams.to, startDate: searchParams.startDate, endDate: searchParams.endDate, passengers: searchParams.passengers, budget: searchParams.budget },
-    });
+      let newSelectedFlights: FlightDetails[];
+      if (isSelected) {
+        // Remove flight from selection
+        newSelectedFlights = selectedFlights.filter(f => 
+          !(f.airline === flight.airline && 
+            f.departureDetails.segments[0].flightNumber === flight.departureDetails.segments[0].flightNumber)
+        );
+      } else {
+        // Add flight to selection
+        newSelectedFlights = [...selectedFlights, flight];
+      }
+
+      setSelectedFlights(newSelectedFlights);
+
+      // Update session storage
+      const sessionData = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+      const parsedData = sessionData ? JSON.parse(sessionData) : {};
+      
+      if (newSelectedFlights.length > 0) {
+        parsedData.flightSelected = newSelectedFlights[0]; // Store only the most recently selected flight
+      } else {
+        delete parsedData.flightSelected;
+      }
+
+      await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(parsedData));
+
+      // Only show alert if selecting a new flight
+      if (!isSelected) {
+        Alert.alert(
+          'Success',
+          'Flight added to your travel plan!',
+          [
+            {
+              text: 'View Travel Plan',
+              onPress: () => {
+                router.push('/travel-plan');
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error handling flight selection:', error);
+      alert('Error updating flight selection');
+    }
+  };
+
+  const isFlightSelected = (flight: FlightDetails) => {
+    return selectedFlights.some(f => 
+      f.airline === flight.airline && 
+      f.price.total === flight.price.total
+    );
   };
 
   const renderFlightCard = ({ item }: { item: FlightDetails }) => (
@@ -252,65 +323,49 @@ export default function FlightListings() {
         <Text style={styles.priceText}>
           {item.price.currency} {item.price.total}
         </Text>
-        <Text>{item.passengers} passenger(s)</Text>
+        <Text style={styles.passengerText}>
+          {item.passengers} passenger{item.passengers > 1 ? 's' : ''}
+        </Text>
+      </View>
+
+      {/* Airline and duration */}
+      <View style={styles.airlineRow}>
         <Text style={styles.airlineText}>{item.airline}</Text>
+        <Text style={styles.durationText}>
+          {item.departureDetails.totalDuration}
+        </Text>
       </View>
-  
-      {/* Departure and Return Details in Row */}
-      <View style={styles.flightDetailsRow}>
-        {/* Departure Details */}
-        <View style={styles.flightDetailsColumn}>
-          <Text style={styles.sectionTitle}>Departure:</Text>
-          <Text style={styles.totalDuration}>
-            Total Duration: {item.departureDetails.totalDuration}
+
+      {/* Flight details */}
+      <View style={styles.detailsRow}>
+        <View style={styles.detailColumn}>
+          <Text style={styles.detailLabel}>Departure</Text>
+          <Text style={styles.detailText}>
+            {item.departureDetails.segments[0].departureTime}
           </Text>
-          {item.departureDetails.segments.map((segment, idx) => (
-            <View key={idx} style={styles.segmentDetails}>
-              <Text style={styles.segmentText}>
-                {segment.from} → {segment.to}
-              </Text>
-              <Text>Flight No: {segment.flightNumber}</Text>
-              <Text>Aircraft: {segment.aircraft}</Text>
-              <Text>Departure: {segment.departureTime}</Text>
-              <Text>Arrival: {segment.arrivalTime}</Text>
-              <Text>Duration: {segment.duration}</Text>
-              {segment.stops > 0 && (
-                <Text>Layover: {segment.stopDuration}</Text>
-              )}
-            </View>
-          ))}
         </View>
-  
-        {/* Return Details */}
-        <View style={styles.flightDetailsColumn}>
-          <Text style={styles.sectionTitle}>Return:</Text>
-          <Text style={styles.totalDuration}>
-            Total Duration: {item.returnDetails.totalDuration}
+        <View style={styles.detailColumn}>
+          <Text style={styles.detailLabel}>Arrival</Text>
+          <Text style={styles.detailText}>
+            {item.departureDetails.segments[0].arrivalTime}
           </Text>
-          {item.returnDetails.segments.map((segment, idx) => (
-            <View key={idx} style={styles.segmentDetails}>
-              <Text style={styles.segmentText}>
-                {segment.from} → {segment.to}
-              </Text>
-              <Text>Flight No: {segment.flightNumber}</Text>
-              <Text>Aircraft: {segment.aircraft}</Text>
-              <Text>Departure: {segment.departureTime}</Text>
-              <Text>Arrival: {segment.arrivalTime}</Text>
-              <Text>Duration: {segment.duration}</Text>
-              {segment.stops > 0 && (
-                <Text>Layover: {segment.stopDuration}</Text>
-              )}
-            </View>
-          ))}
         </View>
       </View>
-  
-      {/* Select Flight Button */}
+
+      {/* Select button */}
       <TouchableOpacity
-        style={styles.selectButton}
+        style={[
+          styles.selectButton,
+          isFlightSelected(item) && styles.selectedButton
+        ]}
         onPress={() => handleSelectFlight(item)}
       >
-        <Text style={styles.selectButtonText}>Select Flight</Text>
+        <Text style={[
+          styles.selectButtonText,
+          isFlightSelected(item) && styles.selectedButtonText
+        ]}>
+          {isFlightSelected(item) ? 'Selected' : 'Select'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -623,16 +678,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectButton: {
-    backgroundColor: '#2a9d8f',
-    paddingVertical: 16,
+    backgroundColor: '#4CAF50',
+    padding: 10,
     borderRadius: 8,
-    marginTop: 20,
+    marginTop: 10,
     alignItems: 'center',
   },
+  selectedButton: {
+    backgroundColor: '#666',
+  },
   selectButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  selectedButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   
   priceRow: {
@@ -702,10 +762,26 @@ const styles = StyleSheet.create({
   flightDetailsSection: {
     marginVertical: 10,
   },
-
- 
-
-
-
-
+  durationText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  detailColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  detailText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });

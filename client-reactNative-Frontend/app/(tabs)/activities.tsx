@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useGlobalSearchParams } from 'expo-router';
+import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { useGlobalSearchParams, useRouter } from 'expo-router';
 import TopBar from '../../components/TopBarComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -49,7 +49,10 @@ const activitiesData = [
     },
 ];
 
+const SESSION_STORAGE_KEY = 'travel_form_data';
+
 export default function Activities() {
+    const router = useRouter();
     const [searchParams, setSearchParams] = useState({
         from: '',
         to: '',
@@ -61,6 +64,7 @@ export default function Activities() {
     const [activities, setActivities] = useState<ActivityDetails[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFetching, setIsFetching] = useState(false);
+    const [selectedActivities, setSelectedActivities] = useState<ActivityDetails[]>([]);
 
     useEffect(() => {
         const loadSearchParams = async () => {
@@ -76,6 +80,23 @@ export default function Activities() {
             }
         };
         loadSearchParams();
+    }, []);
+
+    useEffect(() => {
+        const loadSelectedActivities = async () => {
+            try {
+                const sessionData = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+                if (sessionData) {
+                    const parsedData = JSON.parse(sessionData);
+                    if (parsedData.activitySelected) {
+                        setSelectedActivities(parsedData.activitySelected);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading selected activities:', error);
+            }
+        };
+        loadSelectedActivities();
     }, []);
 
     const handleSearchParamsChange = async (field: string, value: string) => {
@@ -188,9 +209,64 @@ export default function Activities() {
     const { from, to, startDate, endDate, passengers, budget } = searchParams;
     const hasValidSearch = from && to && from !== 'undefined' && to !== 'undefined';
 
-    const handleBookActivity = (activity: any) => {
-        console.log('Booking activity:', activity);
-        // Add navigation or other logic here
+    const handleBookActivity = async (activity: ActivityDetails) => {
+        try {
+            const isSelected = selectedActivities.some(a => 
+                a.name === activity.name && 
+                a.price === activity.price
+            );
+
+            let newSelectedActivities: ActivityDetails[];
+            if (isSelected) {
+                // Remove activity from selection
+                newSelectedActivities = selectedActivities.filter(a => 
+                    !(a.name === activity.name && a.price === activity.price)
+                );
+            } else {
+                // Add activity to selection
+                newSelectedActivities = [...selectedActivities, activity];
+            }
+
+            setSelectedActivities(newSelectedActivities);
+
+            // Update session storage
+            const sessionData = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+            const parsedData = sessionData ? JSON.parse(sessionData) : {};
+            
+            if (newSelectedActivities.length > 0) {
+                parsedData.activitySelected = newSelectedActivities;
+            } else {
+                delete parsedData.activitySelected;
+            }
+
+            await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(parsedData));
+
+            // Only show alert if selecting a new activity
+            if (!isSelected) {
+                Alert.alert(
+                    'Success',
+                    'Activity added to your travel plan!',
+                    [
+                        {
+                            text: 'View Travel Plan',
+                            onPress: () => {
+                                router.push('/travel-plan');
+                            }
+                        }
+                    ]
+                );
+            }
+        } catch (error) {
+            console.error('Error handling activity selection:', error);
+            alert('Error updating activity selection');
+        }
+    };
+
+    const isActivitySelected = (activity: ActivityDetails) => {
+        return selectedActivities.some(a => 
+            a.name === activity.name && 
+            a.price === activity.price
+        );
     };
 
     if (isLoading) {
@@ -222,10 +298,18 @@ export default function Activities() {
             </View>
             <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                    style={styles.bookButton}
+                    style={[
+                        styles.bookButton,
+                        isActivitySelected(item) && styles.selectedButton
+                    ]}
                     onPress={() => handleBookActivity(item)}
                 >
-                    <Text style={styles.bookButtonText}>Book Activity</Text>
+                    <Text style={[
+                        styles.bookButtonText,
+                        isActivitySelected(item) && styles.selectedButtonText
+                    ]}>
+                        {isActivitySelected(item) ? 'Selected' : 'Select Activity'}
+                    </Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -242,17 +326,24 @@ export default function Activities() {
                 budget={budget}
                 onChange={handleSearchParamsChange}
             />
+            <View style={styles.headerContainer}>
+                <Text style={styles.headerTitle}>Available Activities</Text>
+                <Text style={styles.headerSubtitle}>
+                    {from} → {to}
+                </Text>
+            </View>
             {isFetching ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                    <Text style={styles.loadingText}>Fetching activities...</Text>
+                    <ActivityIndicator size="large" color="#4CAF50" />
+                    <Text style={styles.loadingText}>Finding exciting activities for you...</Text>
                 </View>
             ) : (
                 <FlatList
                     data={activities}
                     renderItem={renderActivityCard}
-                    keyExtractor={(item, index) => index.toString()}
+                    keyExtractor={(item) => item.name}
                     contentContainerStyle={styles.listContainer}
+                    showsVerticalScrollIndicator={false}
                 />
             )}
         </View>
@@ -262,96 +353,104 @@ export default function Activities() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: "#f8f9fa",
     },
-    content: {
-        flex: 1,
-        padding: 16,
+    headerContainer: {
+        backgroundColor: "#ffffff",
+        padding: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: "#e9ecef",
     },
-    headerText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 16,
-        color: '#333',
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#2d3436",
+        marginBottom: 8,
+    },
+    headerSubtitle: {
+        fontSize: 16,
+        color: "#636e72",
     },
     listContainer: {
-        paddingBottom: 16,
+        padding: 16,
     },
     activityCard: {
-        backgroundColor: 'white',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: '#000',
+        backgroundColor: "white",
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 16,
+        shadowColor: "#000",
         shadowOffset: {
             width: 0,
             height: 2,
         },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowRadius: 8,
+        elevation: 4,
     },
     activityName: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#2d3436",
         marginBottom: 8,
-        color: '#333',
     },
     rating: {
         fontSize: 16,
-        color: '#FFB800',
+        color: "#f1c40f",
         marginBottom: 8,
     },
     description: {
         fontSize: 14,
-        color: '#666',
-        marginBottom: 12,
+        color: "#636e72",
+        marginBottom: 16,
+        lineHeight: 20,
     },
     detailsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 16,
     },
     details: {
         fontSize: 14,
-        color: '#666',
+        color: "#636e72",
     },
     price: {
-        fontSize: 24,
+        fontSize: 18,
+        color: "#2ecc71",
         fontWeight: 'bold',
-        color: '#4CAF50',
     },
     buttonContainer: {
         alignItems: 'center',
     },
     bookButton: {
         backgroundColor: '#4CAF50',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 6,
-        overflow: 'hidden',
+        padding: 16,
+        borderRadius: 12,
+        width: '100%',
+        alignItems: 'center',
+    },
+    selectedButton: {
+        backgroundColor: '#95a5a6',
     },
     bookButtonText: {
         color: 'white',
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: 'bold',
+    },
+    selectedButtonText: {
+        color: '#fff',
     },
     loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
     },
     loadingText: {
-      fontSize: 16,
-      marginTop: 10,
-      color: '#666',
-    },
-    messageText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 16,
-        color: '#333',
+        fontSize: 16,
+        color: "#636e72",
+        marginTop: 12,
         textAlign: 'center',
     },
 });

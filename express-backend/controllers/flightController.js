@@ -13,7 +13,14 @@ const extractFlightDetails = (responseData, travelBudget) => {
       "DL": "Delta Air Lines",
       "UA": "United Airlines",
       "BA": "British Airways",
-      "B6": "JetBlue Airways"
+      "B6": "JetBlue Airways",
+      "NK": "Spirit Airlines",
+      "WN": "Southwest Airlines",
+      "AS": "Alaska Airlines",
+      "HA": "Hawaiian Airlines",
+      "EV": "ExpressJet Airlines",
+      "MQ": "American Eagle Airlines",
+      
       // Add more airline codes and names
   };
 

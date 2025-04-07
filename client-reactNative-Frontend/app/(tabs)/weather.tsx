@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { useGlobalSearchParams } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useGlobalSearchParams, useRouter } from 'expo-router';
 import TopBar from '../../components/TopBarComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -38,6 +38,7 @@ const weatherData: WeatherDetails = {
 };
 
 export default function Weather() {
+    const router = useRouter();
     const [searchParams, setSearchParams] = useState({
         from: '',
         to: '',
@@ -173,10 +174,16 @@ export default function Weather() {
                 budget={budget}
                 onChange={handleSearchParamsChange}
             />
+            <View style={styles.headerContainer}>
+                <Text style={styles.headerTitle}>Weather Forecast</Text>
+                <Text style={styles.headerSubtitle}>
+                    {from} → {to}
+                </Text>
+            </View>
             {isFetching ? (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                    <Text style={styles.loadingText}>Fetching weather...</Text>
+                    <ActivityIndicator size="large" color="#4CAF50" />
+                    <Text style={styles.loadingText}>Fetching weather data...</Text>
                 </View>
             ) : (
                 <ScrollView style={styles.content}>
@@ -202,6 +209,12 @@ export default function Weather() {
                             </ScrollView>
                         </>
                     )}
+                    <TouchableOpacity 
+                        style={styles.finalizeButton}
+                        onPress={() => router.push('/travel-plan')}
+                    >
+                        <Text style={styles.finalizeButtonText}>Finalize Trip</Text>
+                    </TouchableOpacity>
                 </ScrollView>
             )}
         </View>
@@ -304,5 +317,40 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         padding: 20,
         color: '#666',
+    },
+    headerContainer: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
+    },
+    headerSubtitle: {
+        fontSize: 18,
+        color: '#666',
+    },
+    finalizeButton: {
+        backgroundColor: '#4CAF50',
+        padding: 16,
+        borderRadius: 12,
+        marginTop: 20,
+        marginBottom: 40,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    finalizeButtonText: {
+        color: '#ffffff',
+        fontSize: 18,
+        fontWeight: 'bold',
     },
 }); 

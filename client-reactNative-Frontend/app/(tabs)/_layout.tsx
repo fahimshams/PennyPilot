@@ -120,6 +120,13 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabBarIcon name="cloudy" color={color} />,
           }}
         />
+         <Tabs.Screen
+          name="travel-plan"
+          options={{
+            title: 'Travel Plan',
+            tabBarIcon: ({ color }) => <TabBarIcon name="cloudy" color={color} />,
+          }}
+        />
       </Tabs>
       <ChatBox />
     </>
